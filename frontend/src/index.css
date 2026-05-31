@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme {
+    --font-sans: "Inter", sans-serif;
+    --font-display: "Spline Sans", sans-serif;
+
+    --radius: 0.75rem; /* 12px for softer look */
+    --radius-lg: var(--radius);
+    --radius-md: calc(var(--radius) - 2px);
+    --radius-sm: calc(var(--radius) - 4px);
+
+    /* Admin Theme Colors - Soft Pastel Palette */
+    --color-primary: #8e97fd; /* Soft Periwinkle */
+    --color-primary-foreground: #ffffff;
+
+    --color-secondary: #f1f5f9;
+    --color-secondary-foreground: #64748b;
+
+    --color-accent: #c7d2fe; /* Soft Indigo */
+    --color-accent-foreground: #4338ca;
+
+    --color-background: #fafbfd; /* Pearl White */
+    --color-surface: #ffffff;
+    --color-admin-bg: #fafbfd;
+
+    /* Semantic Status Colors (Softer) */
+    --color-success: #34d399; /* Emerald 400 */
+    --color-warning: #fbbf24; /* Amber 400 */
+    --color-error: #f87171; /* Red 400 */
+
+    /* Brand/Public Theme */
+    --color-brand: #8e97fd;
+    --color-brand-foreground: #ffffff;
+    --color-bg-light: #fafbfd;
+    --color-bg-dark: #1e1b4b;
+}
+
+body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}

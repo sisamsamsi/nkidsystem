@@ -1,0 +1,72 @@
+{
+    "templates": [
+        {
+            "id": 1,
+            "name": "CUTTING"
+        },
+        {
+            "id": 2,
+            "name": "SABLON"
+        },
+        {
+            "id": 3,
+            "name": "SEWING"
+        },
+        {
+            "id": 4,
+            "name": "FINISHING"
+        },
+        {
+            "id": 5,
+            "name": "PACKING"
+        }
+    ],
+    "stations": [
+        {
+            "id": 5,
+            "name": "nkids",
+            "division": "Admin"
+        },
+        {
+            "id": 6,
+            "name": "Amir",
+            "division": "Cutting"
+        },
+        {
+            "id": 7,
+            "name": "Rita",
+            "division": "Sewing"
+        },
+        {
+            "id": 8,
+            "name": "Nur",
+            "division": "QC"
+        }
+    ],
+    "users_all": [
+        {
+            "id": 5,
+            "name": "nkids",
+            "role": "admin",
+            "division": "Admin"
+        },
+        {
+            "id": 6,
+            "name": "Amir",
+            "role": "operator",
+            "division": "Cutting"
+        },
+        {
+            "id": 7,
+            "name": "Rita",
+            "role": "operator",
+            "division": "Sewing"
+        },
+        {
+            "id": 8,
+            "name": "Nur",
+            "role": "qc",
+            "division": "QC"
+        }
+    ]
+}
