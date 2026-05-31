@@ -79,7 +79,7 @@ class RecalculateProgressAction
      */
     private function recalculateOrderProgress(Order $order): void
     {
-        $items = $order->items;
+        $items = $order->items()->get();
         
         if ($items->isEmpty()) {
             return;

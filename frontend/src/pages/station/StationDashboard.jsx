@@ -10,6 +10,24 @@ import WorkLogModal from '../../components/station/WorkLogModal';
 import QCLogModal from '../../components/station/QCLogModal';
 import { stationService } from '../../services/stationService';
 
+const getColorCode = (colorName) => {
+    if (!colorName) return '#6b7280';
+    const name = colorName.toLowerCase();
+    if (name.includes('navy') || name.includes('dongker')) return '#1e3a8a';
+    if (name.includes('blue') || name.includes('biru')) return '#3b82f6';
+    if (name.includes('red') || name.includes('merah')) return '#ef4444';
+    if (name.includes('green') || name.includes('hijau')) return '#22c55e';
+    if (name.includes('yellow') || name.includes('kuning')) return '#eab308';
+    if (name.includes('black') || name.includes('hitam')) return '#0f172a';
+    if (name.includes('white') || name.includes('putih')) return '#f8fafc';
+    if (name.includes('grey') || name.includes('gray') || name.includes('abu')) return '#64748b';
+    if (name.includes('cream') || name.includes('krem')) return '#fef08a';
+    if (name.includes('orange') || name.includes('jingga')) return '#f97316';
+    if (name.includes('pink') || name.includes('merah muda')) return '#ec4899';
+    if (name.includes('purple') || name.includes('ungu')) return '#a855f7';
+    return '#6b7280';
+};
+
 const StationDashboard = () => {
     const navigate = useNavigate();
     
@@ -59,9 +77,10 @@ const StationDashboard = () => {
                     variantName: variant?.name || 'N/A',
                     colorblock: {
                         name: item?.color || 'N/A',
-                        colorCode: '#6b7280',
+                        colorCode: getColorCode(item?.color),
                         size: item?.size || variant?.size || ''
                     },
+                    imageUrl: variant?.image_url || null,
                     priority: order?.priority || 'normal',
                     completed: task.completed_quantity || 0,
                     total: item?.quantity || 0,
@@ -260,6 +279,11 @@ const StationDashboard = () => {
         }
     };
 
+    // Calculate real shift progress
+    const totalQty = tasks.reduce((sum, t) => sum + (t.total || 0), 0);
+    const completedQty = tasks.reduce((sum, t) => sum + (t.completed || 0), 0);
+    const shiftProgressPercent = totalQty > 0 ? Math.round((completedQty / totalQty) * 100) : 0;
+
     return (
         <div className="min-h-screen bg-[#f8fafc] flex flex-col font-sans text-slate-900 overflow-hidden">
             {/* V2 Compact Header */}
@@ -288,7 +312,7 @@ const StationDashboard = () => {
                         <div className="hidden md:flex items-center gap-8 mr-8">
                             <div className="text-right">
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Shift Progress</p>
-                                <p className="text-sm font-black text-slate-700">84% Complete</p>
+                                <p className="text-sm font-black text-slate-700">{shiftProgressPercent}% Complete</p>
                             </div>
                             <div className="w-px h-8 bg-slate-100" />
                         </div>
@@ -485,10 +509,22 @@ const StationDashboard = () => {
                                                             />
                                                         </td>
                                                     )}
-                                                    {/* Product Image (Dummy) */}
+                                                    {/* Product Image */}
                                                     <td className="py-4 px-4">
                                                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 overflow-hidden">
-                                                            <Image size={20} strokeWidth={1.5} />
+                                                            {task.imageUrl ? (
+                                                                <img 
+                                                                    src={task.imageUrl} 
+                                                                    alt={task.variantName}
+                                                                    className="w-full h-full object-cover"
+                                                                    onError={(e) => {
+                                                                        e.target.style.display = 'none';
+                                                                        e.target.parentNode.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-off text-slate-300"><line x1="2" x2="22" y1="2" y2="22"/><path d="M10.41 10.41a2 2 0 1 1-2.83-2.83"/><path d="M13.5 21H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h15a2 2 0 0 1 2 2v9.5"/><path d="m10 14 5.07-5.07a1.41 1.41 0 0 1 2 0l3.93 3.93"/></svg>';
+                                                                    }}
+                                                                />
+                                                            ) : (
+                                                                <Image size={20} strokeWidth={1.5} />
+                                                            )}
                                                         </div>
                                                     </td>
                                                     
@@ -594,7 +630,7 @@ const StationDashboard = () => {
                                 </p>
                                 <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
                                     <Clock size={14} />
-                                    Last updated: <span className="text-slate-600">just now</span>
+                                    Last updated: <span className="text-slate-600">{loading ? 'Updating...' : new Date().toLocaleTimeString()}</span>
                                 </div>
                             </div>
                         </div>

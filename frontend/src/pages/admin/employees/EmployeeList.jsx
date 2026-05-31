@@ -184,8 +184,8 @@ const EmployeeList = () => {
                                     <tr key={emp.id} className="group hover:bg-slate-50/80 transition-all duration-200">
                                         <td className="py-4 px-8">
                                             <div className="flex items-center gap-4">
-                                                <div className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm shadow-sm border border-black/5 ${getAvatarColor(emp.name)}`}>
-                                                    {emp.name.substring(0, 2).toUpperCase()}
+                                                <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-black text-sm shadow-sm border border-black/5 ${getAvatarColor(emp.name)}`}>
+                                                    {(emp.name || '??').substring(0, 2).toUpperCase()}
                                                 </div>
                                                 <div>
                                                     <div className="font-black text-slate-700 group-hover:text-primary transition-colors tracking-tight">{emp.name}</div>
@@ -208,7 +208,7 @@ const EmployeeList = () => {
                                             {emp.is_station ? (
                                                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-indigo-50/50 text-indigo-600 rounded-xl font-mono font-black border border-indigo-100 shadow-sm text-xs">
                                                     <Key size={12} strokeWidth={3} />
-                                                    {emp.pin_code || "------"}
+                                                    {emp.pin_code ? "••••••" : "------"}
                                                 </div>
                                             ) : (
                                                 <span className="text-slate-300 font-bold">-</span>

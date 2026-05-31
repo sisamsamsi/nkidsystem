@@ -28,12 +28,10 @@ const WorkLogModal = ({ isOpen, onClose, task, onSuccess }) => {
             // Fetch operators
             api.get('/users?role=operator').then(res => {
                 setEmployees(res.data.data || res.data || []);
-            }).catch(() => {
-                // Fallback mock data
-                setEmployees([
-                    { id: 1, name: 'John Doe', employee_id: '101' },
-                    { id: 2, name: 'Jane Smith', employee_id: '102' },
-                ]);
+            }).catch((err) => {
+                console.error('Fetch operators error:', err);
+                setError('Gagal memuat daftar operator dari server. Silakan hubungi admin.');
+                setEmployees([]);
             });
         }
     }, [isOpen]);
@@ -79,6 +77,21 @@ const WorkLogModal = ({ isOpen, onClose, task, onSuccess }) => {
 
     const handleSubmit = async () => {
         if (!employeeId || pin.length !== 6 || quantity === '0') return;
+        
+        const qtyNum = parseInt(quantity);
+        if (isNaN(qtyNum) || qtyNum <= 0) {
+            setError('Jumlah kuantitas tidak valid.');
+            return;
+        }
+
+        // Limit validation for non-batch mode
+        if (!isBatchMode) {
+            const remainingQty = firstTask.total - firstTask.completed;
+            if (qtyNum > remainingQty) {
+                setError(`Jumlah tidak boleh melebihi sisa target (${remainingQty} pcs)`);
+                return;
+            }
+        }
         
         setLoading(true);
         setError('');

@@ -42,7 +42,7 @@ class OrderController extends Controller
 
         // Sorting
         $sortField = $request->get('sort_field', 'created_at');
-        $sortOrder = $request->get('sort_order', 'desc');
+        $sortOrder = in_array(strtolower($request->get('sort_order', 'desc')), ['asc', 'desc']) ? strtolower($request->get('sort_order', 'desc')) : 'desc';
 
         if ($sortField === 'po_number') {
             $query->orderBy('po_number', $sortOrder);
@@ -542,32 +542,24 @@ class OrderController extends Controller
 
         // 3. Sequence
         // Check existing orders for this customer on this date to increment
-        // OR check global orders for this date? Usually PO sequence is per system or per customer?
-        // "nomor urut (sequence)" normally implies global daily sequence or customer daily sequence.
-        // Let's assume Global sequence for the day is safer for uniqueness, BUT "Nama customer sebagai bagian dari kode" implies the prefix separates it.
-        // Let's count orders with THIS prefix logic or just count orders for the date?
-        // If we use [CUST]-[DATE]-[001], if Customer A has 001, Customer B can also have 001?
-        // User said: "menggunakan tanggal pembuatan order, serta nomor urut (sequence)."
-        // Usually POs are unique globally. Let's make it unique globally for the day.
-        // Or if the prefix is different, the sequence can be reset?
-        // To be safe and simple: Let's count orders for this customer on this date.
-        // But uniqueness is `unique:orders`.
-        // If I have NKD-20231223-001 and ABC-20231223-001, they are unique. So sequence per customer/date is fine.
-        
-        $count = Order::where('customer_id', $customer->id)
-            ->whereDate('date', $date->toDateString())
-            ->count();
-        
-        $sequence = str_pad($count + 1, 3, '0', STR_PAD_LEFT);
-
-        $poNumber = "$code-$dateStr-$sequence";
-
-        // Double check uniqueness (race condition check essentially)
-        while(Order::where('po_number', $poNumber)->exists()) {
-            $count++;
+        // Wrap in a transaction with lockForUpdate to ensure concurrency safety
+        $poNumber = DB::transaction(function() use ($customer, $date, $code, $dateStr) {
+            $count = DB::table('orders')
+                ->where('customer_id', $customer->id)
+                ->whereDate('date', $date->toDateString())
+                ->lockForUpdate()
+                ->count();
+            
             $sequence = str_pad($count + 1, 3, '0', STR_PAD_LEFT);
-            $poNumber = "$code-$dateStr-$sequence";
-        }
+            $poNum = "$code-$dateStr-$sequence";
+
+            while(DB::table('orders')->where('po_number', $poNum)->exists()) {
+                $count++;
+                $sequence = str_pad($count + 1, 3, '0', STR_PAD_LEFT);
+                $poNum = "$code-$dateStr-$sequence";
+            }
+            return $poNum;
+        });
 
         return response()->json([
             'success' => true,

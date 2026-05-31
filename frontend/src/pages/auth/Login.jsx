@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, Lock, Eye, EyeOff, Loader2, Factory } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
@@ -13,6 +13,23 @@ const Login = () => {
     password: ''
   });
 
+  useEffect(() => {
+    if (authService.isAuthenticated()) {
+      const user = authService.getStoredUser();
+      if (user) {
+        if (user.role === 'admin' || user.role === 'manager') {
+          navigate('/admin');
+        } else if (user.is_station) {
+          navigate('/station');
+        } else if (user.role === 'customer') {
+          navigate('/tracking');
+        } else {
+          navigate('/admin');
+        }
+      }
+    }
+  }, [navigate]);
+
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -23,8 +40,14 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError('');
+
+    if (!formData.email.trim() || !formData.password.trim()) {
+      setError('Email dan password wajib diisi.');
+      return;
+    }
+
+    setLoading(true);
 
     try {
       const response = await authService.login(formData.email, formData.password);
@@ -173,7 +196,7 @@ const Login = () => {
           {/* Footer */}
           <div className="mt-10 text-center">
             <p className="text-[10px] text-slate-400 font-medium uppercase tracking-[0.2em]">
-              © 2024 NKids Production System
+              © {new Date().getFullYear()} NKids Production System
             </p>
           </div>
         </div>

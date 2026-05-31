@@ -52,7 +52,7 @@ class StationController extends Controller
             ], 401);
         }
 
-        if ($station->pin_code !== $request->pin_code) {
+        if (!Hash::check($request->pin_code, $station->pin_code)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid PIN code',
@@ -106,7 +106,7 @@ class StationController extends Controller
               END")
               ->select('production_tasks.*');
 
-        $tasks = $query->get();
+        $tasks = $query->limit(100)->get();
 
         return response()->json([
             'success' => true,
@@ -149,7 +149,7 @@ class StationController extends Controller
 
         // Verify operator PIN
         $operator = User::find($validated['operator_id']);
-        if ($operator->pin_code !== $validated['pin_code']) {
+        if (!Hash::check($validated['pin_code'], $operator->pin_code)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid operator PIN',

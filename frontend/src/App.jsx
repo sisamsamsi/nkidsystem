@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import Login from './pages/auth/Login';
 import AdminLayout from './components/layout/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
@@ -17,6 +17,16 @@ import StationDashboard from './pages/station/StationDashboard';
 import StationLogin from './pages/station/StationLogin';
 import CustomerOrderTracking from './pages/customer/CustomerOrderTracking';
 import LandingPage from './pages/LandingPage';
+import authService from './services/authService';
+import stationService from './services/stationService';
+
+const PrivateRoute = () => {
+    return authService.isAuthenticated() ? <Outlet /> : <Navigate to="/login" replace />;
+};
+
+const StationPrivateRoute = () => {
+    return stationService.isAuthenticated() ? <Outlet /> : <Navigate to="/station/login" replace />;
+};
 
 // Placeholder components for other pages
 const NotFound = () => <div className="p-8 text-center text-red-500">404 - Page Not Found</div>;
@@ -34,26 +44,32 @@ function App() {
                 
                 {/* Station Routes (Kiosk Mode) */}
                 <Route path="/station/login" element={<StationLogin />} />
-                <Route path="/station" element={<StationDashboard />} />
+                <Route element={<StationPrivateRoute />}>
+                    <Route path="/station" element={<StationDashboard />} />
+                </Route>
 
-                {/* Standalone Print Pages (No Layout) */}
-                <Route path="/print/work-order/:id" element={<WorkOrderPrint />} />
+                {/* Standalone Print Pages (No Layout) - Protected */}
+                <Route element={<PrivateRoute />}>
+                    <Route path="/print/work-order/:id" element={<WorkOrderPrint />} />
+                </Route>
 
                 {/* Admin Routes (Protected) */}
-                <Route path="/admin" element={<AdminLayout />}>
-                    <Route index element={<Navigate to="dashboard" replace />} />
-                    <Route path="dashboard" element={<Dashboard />} />
-                    <Route path="customers" element={<CustomerList />} />
-                    <Route path="employees" element={<EmployeeList />} />
-                    <Route path="products" element={<ProductList />} />
-                    <Route path="products/new" element={<ProductBuilder />} />
-                    <Route path="products/:id" element={<ProductBuilder />} />
-                    <Route path="orders" element={<OrderList />} />
-                    <Route path="orders/new" element={<OrderWizard />} />
-                    <Route path="orders/:id" element={<OrderWizard />} />
-                    <Route path="production" element={<ProductionBoard />} />
-                    <Route path="reports" element={<EmployeePerformanceReport />} />
-                    <Route path="settings/sub-processes" element={<SubProcessList />} />
+                <Route element={<PrivateRoute />}>
+                    <Route path="/admin" element={<AdminLayout />}>
+                        <Route index element={<Navigate to="dashboard" replace />} />
+                        <Route path="dashboard" element={<Dashboard />} />
+                        <Route path="customers" element={<CustomerList />} />
+                        <Route path="employees" element={<EmployeeList />} />
+                        <Route path="products" element={<ProductList />} />
+                        <Route path="products/new" element={<ProductBuilder />} />
+                        <Route path="products/:id" element={<ProductBuilder />} />
+                        <Route path="orders" element={<OrderList />} />
+                        <Route path="orders/new" element={<OrderWizard />} />
+                        <Route path="orders/:id" element={<OrderWizard />} />
+                        <Route path="production" element={<ProductionBoard />} />
+                        <Route path="reports" element={<EmployeePerformanceReport />} />
+                        <Route path="settings/sub-processes" element={<SubProcessList />} />
+                    </Route>
                 </Route>
 
                 {/* Redirects / Landing */}

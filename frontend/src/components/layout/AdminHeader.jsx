@@ -1,9 +1,13 @@
 import React from 'react';
 import { Search, Bell, ChevronDown, Check, Factory } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import authService from '../../services/authService';
 
 const AdminHeader = () => {
     const navigate = useNavigate();
+    const user = authService.getStoredUser();
+    const userName = user?.name || 'Jane Admin';
+    const userRole = user?.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1)) : 'Production Mgr';
 
     return (
         <header className="h-16 bg-white border-b border-[#f0f2f5] flex items-center justify-between px-6 sticky top-0 z-50 shadow-sm">
@@ -41,13 +45,12 @@ const AdminHeader = () => {
                     </button>
 
                     <button className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg transition-colors">
-                        <div
-                            className="bg-center bg-no-repeat bg-cover rounded-full size-8 border border-[#f0f2f5]"
-                            style={{ backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDNf-4Uogpxpr1uudAj-ockh3CtdRNB4i4fcsEmwdw7rJS9J9lX52yuivN3UrPGXhCBWnJpQR8Y9g8vs7q14BU3N0dSB36d5YEohJWE0C86jriaeMr7D5UkfKPvV176E4fVj3gmGXaI--UfYByMmi2SoIOWZHNjlszZEZ0yqXEyydRYhbFQleo46Qswcrs8yDkO1knzxgHiddXggbl-_KcXlaX8dOYpJcTVWkDtwxJpl-Zn8_QoXA_4a-is8J0n4nYlaR8imwYK61w")' }}
-                        ></div>
+                        <div className="flex items-center justify-center rounded-full size-8 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-900/40 text-sm select-none">
+                            {userName.charAt(0).toUpperCase()}
+                        </div>
                         <div className="hidden sm:block text-left">
-                            <p className="text-sm font-medium text-[#111418] leading-none">Jane Admin</p>
-                            <p className="text-xs text-[#60708a] mt-0.5">Production Mgr</p>
+                            <p className="text-sm font-medium text-[#111418] leading-none">{userName}</p>
+                            <p className="text-xs text-[#60708a] mt-0.5">{userRole}</p>
                         </div>
                         <ChevronDown className="text-[#60708a]" size={20} />
                     </button>

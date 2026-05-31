@@ -119,7 +119,7 @@ class ReportController extends Controller
     public function dashboard()
     {
         $totalOrders = \App\Models\Order::count();
-        $inProgress = \App\Models\Order::where('status', 'in_progress')->orWhere('status', 'production')->count();
+        $inProgress = \App\Models\Order::where('status', 'processing')->count();
         $completed = \App\Models\Order::where('status', 'completed')->count();
         $urgent = \App\Models\Order::where('priority', 'urgent')->count();
 

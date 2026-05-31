@@ -20,6 +20,7 @@ const QCLogModal = ({ isOpen, onClose, task, onSuccess }) => {
     const [goodQty, setGoodQty] = useState(0);
     const [rejectQty, setRejectQty] = useState(0);
     const [activeField, setActiveField] = useState("good"); // 'good' | 'reject'
+    const [rejectReason, setRejectReason] = useState("");
     const [notes, setNotes] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -29,6 +30,7 @@ const QCLogModal = ({ isOpen, onClose, task, onSuccess }) => {
         if (isOpen) {
             setGoodQty(0);
             setRejectQty(0);
+            setRejectReason("");
             setNotes('');
             setActiveField("good");
             setError("");
@@ -66,6 +68,18 @@ const QCLogModal = ({ isOpen, onClose, task, onSuccess }) => {
     const handleSubmit = async () => {
         if (goodQty === 0 && rejectQty === 0) return;
 
+        // Target quantity validation
+        const remainingQty = task ? (task.total - task.completed) : 0;
+        if (goodQty + rejectQty > remainingQty) {
+            setError(`Total kuantitas (Good + Reject) tidak boleh melebihi sisa target (${remainingQty} pcs)`);
+            return;
+        }
+
+        if (rejectQty > 0 && !rejectReason) {
+            setError('Silakan pilih alasan reject.');
+            return;
+        }
+
         setLoading(true);
         setError("");
 
@@ -74,7 +88,7 @@ const QCLogModal = ({ isOpen, onClose, task, onSuccess }) => {
                 taskId: task?.id,
                 passedQuantity: goodQty,
                 rejectQuantity: rejectQty,
-                rejectReason: null,
+                rejectReason: rejectQty > 0 ? rejectReason : null,
                 notes: notes.trim() || null
             });
             
@@ -184,9 +198,34 @@ const QCLogModal = ({ isOpen, onClose, task, onSuccess }) => {
                                 </div>
                             </div>
 
+                            {/* Reject Reason Selection - Only show if rejectQty > 0 */}
+                            {rejectQty > 0 && (
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Alasan Reject</label>
+                                    <div className="relative">
+                                        <select
+                                            value={rejectReason}
+                                            onChange={(e) => { setRejectReason(e.target.value); setError(''); }}
+                                            className="w-full h-11 pl-4 pr-10 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-white focus:border-primary focus:ring-4 focus:ring-primary/5 outline-none appearance-none cursor-pointer transition-all shadow-sm"
+                                        >
+                                            <option value="" disabled>Pilih alasan reject...</option>
+                                            <option value="Jahitan Rusak">Jahitan Rusak / Broken Stitches</option>
+                                            <option value="Noda Kain">Noda Kain / Stain</option>
+                                            <option value="Kain Robek">Kain Robek / Fabric Tear</option>
+                                            <option value="Ukuran Tidak Sesuai">Ukuran Tidak Sesuai / Measurement Error</option>
+                                            <option value="Warna Belang">Warna Belang / Shading</option>
+                                            <option value="Lainnya">Lainnya (Tulis di Catatan)</option>
+                                        </select>
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Notes Section */}
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Catatan / Alasan Reject (opsional)</label>
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Catatan / Detail Tambahan (opsional)</label>
                                 <textarea
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}

@@ -22,11 +22,16 @@ class CustomerController extends Controller
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('code', 'like', "%{$search}%")
-                  ->orWhere('brand_name', 'like', "%{$search}%");
+                  ->orWhere('brand', 'like', "%{$search}%");
             });
         }
 
-        $customers = $query->latest()->paginate($request->get('per_page', 15));
+        $perPage = (int) $request->get('per_page', 15);
+        if ($perPage > 100) {
+            $perPage = 100;
+        }
+
+        $customers = $query->latest()->paginate($perPage);
 
         return response()->json([
             'success' => true,

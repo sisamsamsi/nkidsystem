@@ -221,7 +221,7 @@ const CustomerList = () => {
                                         <td className="py-4 px-6">
                                             <div className="flex items-center gap-3">
                                                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-xs shadow-sm ${getAvatarColor(customer.name)}`}>
-                                                    {customer.name.substring(0, 2).toUpperCase()}
+                                                    {(customer.name || '??').substring(0, 2).toUpperCase()}
                                                 </div>
                                                 <div>
                                                     <div className="font-semibold text-slate-700 group-hover:text-primary transition-colors">{customer.name}</div>
@@ -234,9 +234,9 @@ const CustomerList = () => {
                                         </td>
                                         <td className="py-4 px-6 text-center">
                                             <span className={`inline-flex px-3 py-1 rounded-xl text-[11px] font-black uppercase tracking-widest border shadow-sm ${
-                                                customer.code.length % 2 === 0 ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-rose-50 text-rose-600 border-rose-100'
+                                                (customer.code || '').length % 2 === 0 ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 'bg-rose-50 text-rose-600 border-rose-100'
                                             }`}>
-                                                {customer.code}
+                                                {customer.code || '-'}
                                             </span>
                                         </td>
                                         <td className="py-4 px-6">

@@ -47,8 +47,12 @@ export const stationService = {
 
   // Get stored station
   getStoredStation: () => {
-    const station = localStorage.getItem('station');
-    return station ? JSON.parse(station) : null;
+    try {
+      const station = localStorage.getItem('station');
+      return station ? JSON.parse(station) : null;
+    } catch (e) {
+      return null;
+    }
   },
 
   // Check if station authenticated

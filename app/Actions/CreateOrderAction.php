@@ -24,8 +24,9 @@ class CreateOrderAction
             $order = Order::create([
                 'po_number' => $orderData['po_number'],
                 'date' => $orderData['date'],
+                'deadline_date' => $orderData['deadline_date'] ?? null,
                 'customer_id' => $orderData['customer_id'],
-                'branch_id' => $orderData['branch_id'],
+                'branch_id' => $orderData['branch_id'] ?? null,
                 'priority' => $orderData['priority'] ?? 'normal',
                 'notes' => $orderData['notes'] ?? null,
                 'status' => 'pending',
@@ -64,7 +65,7 @@ class CreateOrderAction
     {
         $variant = ProductVariant::with('processes')->find($variantId);
 
-        if (!$variant || !$variant->processes) {
+        if (!$variant || $variant->processes->isEmpty()) {
             return;
         }
 

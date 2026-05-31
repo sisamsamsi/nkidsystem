@@ -31,6 +31,7 @@ use App\Http\Controllers\Api\SubProcessController;
 // ===========================================
 
 Route::get('/track/{po_number}', [OrderController::class, 'track'])
+    ->middleware('throttle:15,1')
     ->name('api.track');
 
 // ===========================================
@@ -38,8 +39,8 @@ Route::get('/track/{po_number}', [OrderController::class, 'track'])
 // ===========================================
 
 Route::prefix('auth')->group(function () {
-    Route::post('/login', [AuthController::class, 'login'])->name('api.auth.login');
-    Route::post('/register', [AuthController::class, 'register'])->name('api.auth.register');
+    Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('api.auth.login');
+    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1')->name('api.auth.register');
     
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout'])->name('api.auth.logout');
@@ -52,8 +53,8 @@ Route::prefix('auth')->group(function () {
 // ===========================================
 
 Route::prefix('station')->group(function () {
-    Route::get('/', [StationController::class, 'index'])->name('api.station.index');
-    Route::post('/auth', [StationController::class, 'authenticate'])->name('api.station.auth');
+    Route::get('/', [StationController::class, 'index'])->middleware('throttle:10,1')->name('api.station.index');
+    Route::post('/auth', [StationController::class, 'authenticate'])->middleware('throttle:5,1')->name('api.station.auth');
     
     Route::middleware('auth:sanctum')->group(function () {
         Route::get('/tasks', [StationController::class, 'tasks'])->name('api.station.tasks');
@@ -87,9 +88,9 @@ Route::middleware([\App\Http\Middleware\LogApiResponses::class, 'auth:sanctum'])
     // TRANSACTION RESOURCES
     // -------------------------------------------
     
-    Route::apiResource('orders', OrderController::class);
     Route::post('orders/generate-po-number', [OrderController::class, 'generatePoNumber'])->name('orders.generate-po-number');
     Route::post('orders/import', [OrderController::class, 'import'])->name('orders.import');
+    Route::apiResource('orders', OrderController::class);
     Route::post('orders/{order}/recalculate', [OrderController::class, 'recalculate'])->name('orders.recalculate');
     Route::post('orders/{order}/generate-tasks', [OrderController::class, 'regenerateTasks'])->name('orders.generate-tasks');
     

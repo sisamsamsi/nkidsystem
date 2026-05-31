@@ -131,7 +131,12 @@ class ProductController extends Controller
                 $variantIds = [];
                 foreach ($validated['variants'] as $variantData) {
                     if (isset($variantData['id'])) {
-                        $variant = $product->variants()->findOrFail($variantData['id']);
+                        $variant = $product->variants()->where('id', $variantData['id'])->first();
+                        if (!$variant) {
+                            throw \Illuminate\Validation\ValidationException::withMessages([
+                                'variants' => ["Varian dengan ID {$variantData['id']} tidak ditemukan untuk produk ini."]
+                            ]);
+                        }
                         $variant->update([
                             'name' => $variantData['name'],
                             'colors' => $variantData['colors'],
@@ -156,8 +161,23 @@ class ProductController extends Controller
                         }
                     }
                 }
-                // Option to delete variants NOT in the request
-                $product->variants()->whereNotIn('id', $variantIds)->delete();
+                
+                // Check if any deleted variant is used in active orders
+                $variantsToDelete = $product->variants()->whereNotIn('id', $variantIds)->get();
+                foreach ($variantsToDelete as $variantToDelete) {
+                    $hasOrders = \App\Models\OrderItem::where('product_variant_id', $variantToDelete->id)->exists();
+                    if ($hasOrders) {
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            'variants' => ["Gagal menghapus varian '{$variantToDelete->name}' karena sedang digunakan dalam pesanan aktif."]
+                        ]);
+                    }
+                }
+
+                // Delete variants NOT in the request
+                foreach ($variantsToDelete as $variantToDelete) {
+                    $variantToDelete->processes()->delete();
+                    $variantToDelete->delete();
+                }
             }
         });
 

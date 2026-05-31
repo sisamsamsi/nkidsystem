@@ -52,7 +52,7 @@ class ProductionTaskController extends Controller
 
         // Sorting
         $sortField = $request->get('sort_field', 'priority');
-        $sortOrder = $request->get('sort_order', 'asc');
+        $sortOrder = in_array(strtolower($request->get('sort_order', 'asc')), ['asc', 'desc']) ? strtolower($request->get('sort_order', 'asc')) : 'asc';
 
         if ($request->get('sort') === 'recent' || $sortField === 'updated_at') {
             $query->latest();
@@ -63,8 +63,8 @@ class ProductionTaskController extends Controller
                   ->select('production_tasks.*');
         } elseif ($sortField === 'product_name') {
             $query->join('order_items', 'production_tasks.order_item_id', '=', 'order_items.id')
-                  ->join('variants', 'order_items.variant_id', '=', 'variants.id')
-                  ->join('products', 'variants.product_id', '=', 'products.id')
+                  ->join('product_variants', 'order_items.product_variant_id', '=', 'product_variants.id')
+                  ->join('products', 'product_variants.product_id', '=', 'products.id')
                   ->orderBy('products.name', $sortOrder)
                   ->select('production_tasks.*');
         } elseif ($sortField === 'station') {
@@ -139,7 +139,6 @@ class ProductionTaskController extends Controller
     public function logWork(Request $request, $id, LogWorkAction $action)
     {
         $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
             'quantity' => 'required|integer|min:1',
             'notes' => 'nullable|string',
         ]);
@@ -147,7 +146,7 @@ class ProductionTaskController extends Controller
         try {
             $result = $action->execute(
                 $id,
-                $validated['user_id'],
+                auth()->id(),
                 $validated['quantity'],
                 $validated['notes'] ?? null
             );

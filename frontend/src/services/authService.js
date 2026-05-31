@@ -36,8 +36,12 @@ export const authService = {
 
   // Get stored user
   getStoredUser: () => {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
+    try {
+      const user = localStorage.getItem('user');
+      return user ? JSON.parse(user) : null;
+    } catch (e) {
+      return null;
+    }
   },
 
   // Initialize auth header from storage

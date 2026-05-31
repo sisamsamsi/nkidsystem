@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Factory, Package, ArrowRight, Search } from 'lucide-react';
 
 const Card = ({ href, Icon, title, description, cta, theme = 'blue' }) => {
@@ -48,8 +48,26 @@ const Card = ({ href, Icon, title, description, cta, theme = 'blue' }) => {
 };
 
 const CustomerTrackingCard = () => {
+  const navigate = useNavigate();
+  const [poNumber, setPoNumber] = useState('');
+
+  const handleTrack = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (poNumber.trim()) {
+      navigate(`/tracking?po=${encodeURIComponent(poNumber.trim())}`);
+    } else {
+      navigate('/tracking');
+    }
+  };
+
   return (
-    <Link to="/tracking" className="group glass-card rounded-2xl p-6 flex flex-col justify-between h-full min-h-64 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_20px_40px_rgba(147,51,234,0.15)] hover:border-purple-500/30 transition-all-custom hover:-translate-y-1 relative overflow-hidden">
+    <div 
+      onClick={() => document.getElementById('po-input')?.focus()}
+      className="group glass-card rounded-2xl p-6 flex flex-col justify-between h-full min-h-64 shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none hover:shadow-[0_20px_40px_rgba(147,51,234,0.15)] hover:border-purple-500/30 transition-all-custom hover:-translate-y-1 relative overflow-hidden cursor-pointer"
+    >
       <div className="absolute -right-12 -top-12 w-32 h-32 rounded-full blur-3xl bg-purple-300/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
       <div className="relative z-10">
         <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 shadow-sm">
@@ -59,20 +77,34 @@ const CustomerTrackingCard = () => {
         <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-4">Track production status directly via your Purchase Order (PO) number.</p>
         
         {/* PO Search Bar */}
-        <div className="flex items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 shadow-sm group-hover:shadow-md transition-shadow">
+        <div 
+          onClick={(e) => e.stopPropagation()}
+          className="flex items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 shadow-sm group-hover:shadow-md transition-shadow"
+        >
           <Search size={14} className="text-slate-400 flex-shrink-0" />
           <input
+            id="po-input"
             type="text"
             placeholder="Enter PO Number"
+            value={poNumber}
+            onChange={(e) => setPoNumber(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleTrack(e);
+              }
+            }}
             className="bg-transparent ml-2 text-xs placeholder-slate-400 dark:placeholder-slate-500 text-slate-900 dark:text-white outline-none flex-1 w-full"
           />
         </div>
       </div>
-      <div className="relative z-10 mt-4 flex items-center text-purple-600 dark:text-purple-400 font-semibold group-hover:gap-2 transition-all">
+      <div 
+        onClick={handleTrack}
+        className="relative z-10 mt-4 flex items-center text-purple-600 dark:text-purple-400 font-semibold group-hover:gap-2 transition-all cursor-pointer"
+      >
         <span className="text-sm">Track Order</span>
         <ArrowRight size={12} className="ml-1.5 opacity-0 group-hover:opacity-100 group-hover:translate-x-0 transition-all" />
       </div>
-    </Link>
+    </div>
   );
 };
 
@@ -129,7 +161,7 @@ export default function LandingPage() {
               System Status
             </a>
           </div>
-          <p className="mt-3 text-xs text-slate-400 dark:text-slate-600">© 2024 NKids Integrated Systems. All rights reserved.</p>
+          <p className="mt-3 text-xs text-slate-400 dark:text-slate-600">© {new Date().getFullYear()} NKids Integrated Systems. All rights reserved.</p>
         </footer>
       </div>
     </div>

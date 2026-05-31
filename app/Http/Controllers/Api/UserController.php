@@ -62,7 +62,7 @@ class UserController extends Controller
             'role' => $validated['role'],
             'division' => $validated['division'] ?? null,
             'is_station' => $validated['is_station'] ?? false,
-            'pin_code' => $validated['pin_code'] ?? null,
+            'pin_code' => !empty($validated['pin_code']) ? Hash::make($validated['pin_code']) : null,
         ];
 
         if (!empty($validated['password'])) {
@@ -110,8 +110,13 @@ class UserController extends Controller
             'role' => $validated['role'],
             'division' => $validated['division'] ?? null,
             'is_station' => $validated['is_station'] ?? false,
-            'pin_code' => $validated['pin_code'] ?? $user->pin_code,
         ];
+
+        if ($request->has('pin_code')) {
+            $userData['pin_code'] = !empty($validated['pin_code']) ? Hash::make($validated['pin_code']) : null;
+        } else {
+            $userData['pin_code'] = $user->pin_code;
+        }
 
         if (!empty($validated['password'])) {
             $userData['password'] = Hash::make($validated['password']);

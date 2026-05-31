@@ -1,18 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
     Package, Truck, Scissors, CheckCircle2, 
     Search, AlertCircle, Loader2, Box,
     ClipboardCheck, PackageCheck, ArrowRight, Calendar,
     Clock, Shirt, Check, RotateCw, FileText, ImageOff, ChevronRight
 } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../../lib/axios';
 
 const CustomerOrderTracking = () => {
+    const [searchParams] = useSearchParams();
+    const poParam = searchParams.get('po');
+
     const [poNumber, setPoNumber] = useState('');
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [searched, setSearched] = useState(false);
+
+    useEffect(() => {
+        if (poParam) {
+            const formattedPo = poParam.trim();
+            setPoNumber(formattedPo);
+            
+            const autoSearch = async () => {
+                setLoading(true);
+                setError('');
+                setSearched(true);
+                try {
+                    const response = await api.get(`/track/${formattedPo}`);
+                    if (response.data.success) {
+                        setOrder(response.data.data);
+                    } else {
+                        setError(response.data.message || 'Order not found');
+                        setOrder(null);
+                    }
+                } catch (err) {
+                    console.error('Track error:', err);
+                    if (err.response?.status === 404) {
+                        setError('Order not found. Please check your PO Number.');
+                    } else {
+                        setError('Failed to fetch order. Please try again.');
+                    }
+                    setOrder(null);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            autoSearch();
+        }
+    }, [poParam]);
 
     const handleSearch = async (e) => {
         e.preventDefault();
@@ -399,7 +436,12 @@ const CustomerOrderTracking = () => {
                                                                                 className="w-full h-full object-cover"
                                                                                 onError={(e) => {
                                                                                     e.target.style.display = 'none';
-                                                                                    e.target.nextSibling.style.display = 'flex';
+                                                                                    if (e.target.parentNode && !e.target.parentNode.querySelector('.img-fallback')) {
+                                                                                        const fallback = document.createElement('div');
+                                                                                        fallback.className = 'img-fallback w-full h-full flex items-center justify-center text-slate-300 bg-slate-50';
+                                                                                        fallback.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" x2="22" y1="2" y2="22"/><path d="M10.41 10.41a2 2 0 1 1-2.83-2.83"/><line x1="10" x2="21" y1="14" y2="3"/><path d="M3.59 3.59A2 2 0 0 0 3 5v12a2 2 0 0 0 2 2h12a2 2 0 0 0 1.41-.59"/><path d="m11.5 11.5 2 2 3.5-3.5"/></svg>`;
+                                                                                        e.target.parentNode.appendChild(fallback);
+                                                                                    }
                                                                                 }}
                                                                             />
                                                                         ) : (
@@ -545,7 +587,7 @@ const CustomerOrderTracking = () => {
             <footer className="border-t border-slate-200 mt-auto">
                 <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center">
                     <p className="text-sm text-slate-400">
-                        © 2024 NKids Production System. All rights reserved.
+                        © {new Date().getFullYear()} NKids Production System. All rights reserved.
                     </p>
                 </div>
             </footer>

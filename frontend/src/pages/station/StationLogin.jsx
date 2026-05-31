@@ -36,6 +36,13 @@ const StationLogin = () => {
         return RefreshCw;
     };
 
+    // Auto-redirect if already station-authenticated
+    useEffect(() => {
+        if (stationService.isAuthenticated()) {
+            navigate("/station");
+        }
+    }, [navigate]);
+
     // Fetch stations from API
     useEffect(() => {
         const fetchStations = async () => {
@@ -161,47 +168,54 @@ const StationLogin = () => {
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            {stations.map((station) => {
-                                const Icon = station.icon;
-                                const isActive = selectedStation === station.id;
+                            {loadingStations ? (
+                                <div className="col-span-full flex flex-col items-center justify-center py-12 text-slate-400 gap-2">
+                                    <Loader2 className="animate-spin text-primary" size={28} />
+                                    <span className="text-xs font-black uppercase tracking-widest">Loading Workstations...</span>
+                                </div>
+                            ) : (
+                                stations.map((station) => {
+                                    const Icon = station.icon;
+                                    const isActive = selectedStation === station.id;
 
-                                return (
-                                    <button
-                                        key={station.id}
-                                        onClick={() => setSelectedStation(station.id)}
-                                        className={cn(
-                                            "relative group flex flex-col items-center justify-center gap-3 p-6 rounded-[2rem] border-2 transition-all duration-300",
-                                            isActive 
-                                                ? "border-primary bg-primary/5 shadow-xl shadow-primary/5 -translate-y-1"
-                                                : "border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50/50"
-                                        )}
-                                    >
-                                        <div className={cn(
-                                            "h-14 w-14 rounded-2xl flex items-center justify-center transition-all duration-300",
-                                            isActive 
-                                                ? "bg-primary text-white scale-110 shadow-lg shadow-primary/20"
-                                                : "bg-slate-50 dark:bg-slate-800 text-slate-400 group-hover:scale-105"
-                                        )}>
-                                            <Icon size={28} strokeWidth={2.5} />
-                                        </div>
-                                        <div className="text-center space-y-0.5">
-                                            <p className={cn(
-                                                "text-xs font-black uppercase tracking-widest",
-                                                isActive ? "text-primary" : "text-slate-600 dark:text-slate-400"
+                                    return (
+                                        <button
+                                            key={station.id}
+                                            onClick={() => setSelectedStation(station.id)}
+                                            className={cn(
+                                                "relative group flex flex-col items-center justify-center gap-3 p-6 rounded-[2rem] border-2 transition-all duration-300",
+                                                isActive 
+                                                    ? "border-primary bg-primary/5 shadow-xl shadow-primary/5 -translate-y-1"
+                                                    : "border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50/50"
+                                            )}
+                                        >
+                                            <div className={cn(
+                                                "h-14 w-14 rounded-2xl flex items-center justify-center transition-all duration-300",
+                                                isActive 
+                                                    ? "bg-primary text-white scale-110 shadow-lg shadow-primary/20"
+                                                    : "bg-slate-50 dark:bg-slate-800 text-slate-400 group-hover:scale-105"
                                             )}>
-                                                {station.name}
-                                            </p>
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-60">ID: {station.code}</p>
-                                        </div>
-
-                                        {isActive && (
-                                            <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full border-4 border-white dark:border-slate-900 flex items-center justify-center text-white">
-                                                <CheckCircle2 size={12} strokeWidth={4} />
+                                                <Icon size={28} strokeWidth={2.5} />
                                             </div>
-                                        )}
-                                    </button>
-                                );
-                            })}
+                                            <div className="text-center space-y-0.5">
+                                                <p className={cn(
+                                                    "text-xs font-black uppercase tracking-widest",
+                                                    isActive ? "text-primary" : "text-slate-600 dark:text-slate-400"
+                                                )}>
+                                                    {station.name}
+                                                </p>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-60">ID: {station.code}</p>
+                                            </div>
+
+                                            {isActive && (
+                                                <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary rounded-full border-4 border-white dark:border-slate-900 flex items-center justify-center text-white">
+                                                    <CheckCircle2 size={12} strokeWidth={4} />
+                                                </div>
+                                            )}
+                                        </button>
+                                    );
+                                })
+                            )}
                         </div>
                     </div>
 
