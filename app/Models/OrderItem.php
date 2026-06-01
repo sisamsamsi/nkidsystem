@@ -19,6 +19,13 @@ class OrderItem extends Model
         'progress_percent'
     ];
 
+    protected $casts = [
+        'order_id' => 'integer',
+        'product_variant_id' => 'integer',
+        'quantity' => 'integer',
+        'progress_percent' => 'integer',
+    ];
+
     public function order()
     {
         return $this->belongsTo(Order::class);

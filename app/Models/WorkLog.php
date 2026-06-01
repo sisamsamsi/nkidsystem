@@ -11,6 +11,12 @@ class WorkLog extends Model
 
     protected $fillable = ['production_task_id', 'user_id', 'quantity', 'notes'];
 
+    protected $casts = [
+        'production_task_id' => 'integer',
+        'user_id' => 'integer',
+        'quantity' => 'integer',
+    ];
+
     public function task()
     {
         return $this->belongsTo(ProductionTask::class, 'production_task_id');

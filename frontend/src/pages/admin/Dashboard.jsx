@@ -15,40 +15,47 @@ const Dashboard = () => {
     });
     const [recentOrders, setRecentOrders] = useState([]);
     const [pipeline, setPipeline] = useState([]);
+    const [error, setError] = useState('');
 
     useEffect(() => {
         const fetchDashboardData = async () => {
             setLoading(true);
+            setError('');
             try {
-                // Fetch orders for stats and recent list
-                const ordersRes = await orderService.getAll({ per_page: 8 });
-                const orders = ordersRes.data?.data || ordersRes.data || [];
-                
-                // Calculate stats from orders
-                const totalOrders = ordersRes.data?.total || orders.length;
-                const inProgress = orders.filter(o => o.status === 'in_progress' || o.status === 'production').length;
-                const completed = orders.filter(o => o.status === 'completed').length;
-                const urgent = orders.filter(o => o.priority === 'urgent').length;
+                // Fetch recent orders (5 items) and actual dashboard statistics globally
+                const [ordersRes, statsRes] = await Promise.all([
+                    orderService.getAll({ per_page: 5 }),
+                    reportService.getDashboardStats()
+                ]);
 
-                setStats({ totalOrders, inProgress, completed, urgent });
+                const orders = ordersRes.data?.data || ordersRes.data || [];
+                const statsData = statsRes.data || statsRes || {};
+                
+                setStats({
+                    totalOrders: statsData.total_orders || 0,
+                    inProgress: statsData.in_progress || 0,
+                    completed: statsData.completed || 0,
+                    urgent: statsData.urgent || 0
+                });
                 setRecentOrders(orders.slice(0, 5));
 
                 // Try to fetch pipeline stats
                 try {
                     const pipelineRes = await reportService.getProductionSummary();
-                    setPipeline(pipelineRes.data || []);
+                    setPipeline(pipelineRes.data || pipelineRes || []);
                 } catch {
                     // Use mock pipeline if API not available
                     setPipeline([
-                        { label: 'Cutting', val: 45, color: 'bg-indigo-400' },
-                        { label: 'Sablon', val: 82, color: 'bg-sky-400' },
-                        { label: 'Sewing', val: 64, color: 'bg-emerald-400' },
-                        { label: 'Finishing', val: 30, color: 'bg-amber-400' },
-                        { label: 'Packing', val: 15, color: 'bg-rose-400' },
+                        { label: 'Cutting', val: 45 },
+                        { label: 'Sablon', val: 82 },
+                        { label: 'Sewing', val: 64 },
+                        { label: 'Finishing', val: 30 },
+                        { label: 'Packing', val: 15 },
                     ]);
                 }
             } catch (err) {
                 console.error('Failed to fetch dashboard data', err);
+                setError('Gagal memuat data ringkasan dashboard. Silakan coba beberapa saat lagi.');
                 setStats({ totalOrders: 0, inProgress: 0, completed: 0, urgent: 0 });
             } finally {
                 setLoading(false);
@@ -102,6 +109,13 @@ const Dashboard = () => {
                 </div>
             </div>
 
+            {error && (
+                <div className="p-4 bg-rose-50 border border-rose-100 text-rose-600 rounded-xl flex items-center gap-3 text-sm font-medium animate-in slide-in-from-top-2">
+                    <AlertTriangle size={20} />
+                    {error}
+                </div>
+            )}
+
             {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {/* Card 1: Total Orders */}
@@ -110,10 +124,6 @@ const Dashboard = () => {
                         <div className="p-3 rounded-lg bg-blue-50 text-blue-600">
                             <ShoppingCart size={24} />
                         </div>
-                        <span className="flex items-center text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                            +5.2%
-                            <TrendingUp size={14} className="ml-0.5" />
-                        </span>
                     </div>
                     <h3 className="text-2xl font-semibold text-slate-800 tracking-tight">{stats.totalOrders.toLocaleString()}</h3>
                     <p className="text-sm font-light text-slate-500">Total Orders</p>
@@ -125,10 +135,6 @@ const Dashboard = () => {
                         <div className="p-3 rounded-lg bg-amber-50 text-amber-600">
                             <Clock size={24} />
                         </div>
-                        <span className="flex items-center text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                            +2.1%
-                            <TrendingUp size={14} className="ml-0.5" />
-                        </span>
                     </div>
                     <h3 className="text-2xl font-semibold text-slate-800 tracking-tight">{stats.inProgress}</h3>
                     <p className="text-sm font-light text-slate-500">In Progress</p>
@@ -140,10 +146,6 @@ const Dashboard = () => {
                         <div className="p-3 rounded-lg bg-emerald-50 text-emerald-600">
                             <CheckCircle size={24} />
                         </div>
-                        <span className="flex items-center text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
-                            +8.4%
-                            <TrendingUp size={14} className="ml-0.5" />
-                        </span>
                     </div>
                     <h3 className="text-2xl font-semibold text-slate-800 tracking-tight">{stats.completed}</h3>
                     <p className="text-sm font-light text-slate-500">Completed</p>
@@ -155,10 +157,6 @@ const Dashboard = () => {
                         <div className="p-3 rounded-lg bg-rose-50 text-rose-600">
                             <AlertTriangle size={24} />
                         </div>
-                        <span className="flex items-center text-xs font-medium text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">
-                            -1.2%
-                            <TrendingDown size={14} className="ml-0.5" />
-                        </span>
                     </div>
                     <h3 className="text-2xl font-semibold text-slate-800 tracking-tight">{stats.urgent}</h3>
                     <p className="text-sm font-light text-slate-500">Urgent Tasks</p>
@@ -179,20 +177,31 @@ const Dashboard = () => {
                         </button>
                     </div>
                     <div className="flex-1 flex flex-col justify-center space-y-6">
-                        {pipeline.map((item, idx) => (
-                            <div key={idx} className="group">
-                                <div className="flex justify-between text-sm mb-2">
-                                    <span className="font-medium text-slate-600">{item.label}</span>
-                                    <span className="font-bold text-slate-800">{item.val}%</span>
+                        {pipeline.map((item, idx) => {
+                            const colorsMap = {
+                                'cutting': 'bg-indigo-400',
+                                'sablon': 'bg-sky-400',
+                                'sewing': 'bg-emerald-400',
+                                'finishing': 'bg-amber-400',
+                                'packing': 'bg-rose-400',
+                            };
+                            const labelLower = item.label ? item.label.toLowerCase() : '';
+                            const colorClass = colorsMap[labelLower] || 'bg-blue-400';
+                            return (
+                                <div key={idx} className="group">
+                                    <div className="flex justify-between text-sm mb-2">
+                                        <span className="font-medium text-slate-600">{item.label}</span>
+                                        <span className="font-bold text-slate-800">{item.val}%</span>
+                                    </div>
+                                    <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                                        <div 
+                                            className={`${colorClass} h-2.5 rounded-full transition-all duration-500 group-hover:opacity-80`}
+                                            style={{ width: `${item.val}%` }}
+                                        ></div>
+                                    </div>
                                 </div>
-                                <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                                    <div 
-                                        className={`${item.color} h-2.5 rounded-full transition-all duration-500 group-hover:opacity-80`}
-                                        style={{ width: `${item.val}%` }}
-                                    ></div>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
 

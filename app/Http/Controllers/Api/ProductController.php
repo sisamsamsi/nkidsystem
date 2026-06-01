@@ -8,6 +8,14 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            \Illuminate\Support\Facades\Gate::authorize('admin-only');
+            return $next($request);
+        });
+    }
+
     /**
      * Display a listing of products
      */

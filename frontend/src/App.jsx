@@ -30,7 +30,6 @@ const StationPrivateRoute = () => {
 
 // Placeholder components for other pages
 const NotFound = () => <div className="p-8 text-center text-red-500">404 - Page Not Found</div>;
-const AdminPlaceholder = ({ title = 'Page' }) => <div className="text-2xl font-bold p-6">{title} Page (Coming Soon)</div>;
 
 function App() {
     return (

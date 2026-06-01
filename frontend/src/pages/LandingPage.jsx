@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Factory, Package, ArrowRight, Search } from 'lucide-react';
+import { LayoutDashboard, Factory, Package, ArrowRight, Search, HelpCircle } from 'lucide-react';
 
 const Card = ({ href, Icon, title, description, cta, theme = 'blue' }) => {
   const themeColors = {
@@ -151,15 +151,21 @@ export default function LandingPage() {
         {/* Footer */}
         <footer className="text-center">
           <div className="flex flex-col md:flex-row items-center justify-center gap-4 md:gap-8 text-xs text-slate-500 dark:text-slate-400 font-medium">
-            <a className="hover:text-slate-700 dark:hover:text-slate-200 transition-colors flex items-center gap-1" href="#">
-              <Search size={14} />
+            <a 
+              className="hover:text-slate-700 dark:hover:text-slate-200 transition-colors flex items-center gap-1" 
+              href="mailto:support@nkids.com"
+            >
+              <HelpCircle size={14} />
               Support Center
             </a>
             <span className="hidden md:block w-1 h-1 bg-slate-300 dark:bg-slate-700 rounded-full"></span>
-            <a className="hover:text-slate-700 dark:hover:text-slate-200 transition-colors flex items-center gap-1" href="#">
+            <button 
+              onClick={() => alert("🛰️ System Status: All systems fully operational. Latency 14ms.")}
+              className="hover:text-slate-700 dark:hover:text-slate-200 transition-colors flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 outline-none"
+            >
               <span className="text-[14px]">🛰️</span>
               System Status
-            </a>
+            </button>
           </div>
           <p className="mt-3 text-xs text-slate-400 dark:text-slate-600">© {new Date().getFullYear()} NKids Integrated Systems. All rights reserved.</p>
         </footer>

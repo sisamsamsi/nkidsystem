@@ -18,7 +18,7 @@ const WorkOrderPrint = () => {
                 const response = await orderService.getById(id);
                 setOrder(response.data || response);
             } catch (err) {
-                setError('Gagal memuat data order');
+                setError('Failed to load order data');
                 console.error(err);
             } finally {
                 setLoading(false);
@@ -81,9 +81,9 @@ const WorkOrderPrint = () => {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 gap-4">
                 <AlertCircle size={48} className="text-rose-500" />
-                <p className="text-slate-600">{error || 'Order tidak ditemukan'}</p>
+                <p className="text-slate-600">{error || 'Order not found'}</p>
                 <button onClick={() => navigate('/admin/orders')} className="text-primary hover:underline">
-                    Kembali ke Order List
+                    Back to Order List
                 </button>
             </div>
         );
@@ -98,15 +98,15 @@ const WorkOrderPrint = () => {
                     className="flex items-center gap-2 text-slate-600 hover:text-slate-800"
                 >
                     <ArrowLeft size={20} />
-                    Kembali
+                    Back
                 </button>
-                <h1 className="text-lg font-bold text-slate-800">Surat Jalan Produksi</h1>
+                <h1 className="text-lg font-bold text-slate-800">Production Work Order</h1>
                 <button 
                     onClick={handlePrint}
                     className="flex items-center gap-2 bg-primary text-white px-5 py-2.5 rounded-xl font-medium hover:bg-blue-600 transition-all"
                 >
                     <Printer size={18} />
-                    Cetak
+                    Print
                 </button>
             </div>
 
@@ -119,14 +119,14 @@ const WorkOrderPrint = () => {
                         <div className="flex justify-between items-start">
                             <div>
                                 <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tight">
-                                    Surat Jalan Produksi
+                                    Production Work Order
                                 </h1>
                                 <p className="text-sm text-slate-500 mt-1">Production Work Order</p>
                             </div>
                             <div className="text-right">
                                 <div className="text-xl font-black text-primary">{order.po_number}</div>
                                 <div className="text-xs text-slate-400 mt-1">
-                                    Dicetak: {formatDate(new Date())}
+                                    Printed: {formatDate(new Date())}
                                 </div>
                             </div>
                         </div>
@@ -148,7 +148,7 @@ const WorkOrderPrint = () => {
                         </div>
                         <div className="space-y-2 text-right">
                             <div className="flex items-center justify-end gap-2">
-                                <span className="text-slate-500">Tanggal Order:</span>
+                                <span className="text-slate-500">Order Date:</span>
                                 <span className="font-bold text-slate-800">{formatDate(order.date)}</span>
                                 <Calendar size={14} className="text-slate-400" />
                             </div>
@@ -162,7 +162,7 @@ const WorkOrderPrint = () => {
                     {/* Items Table - Grouped by Variant with Colorblock breakdown */}
                     <section className="mb-6">
                         <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
-                            Breakdown Per Colorblock
+                            Breakdown per Colorblock
                         </h2>
                         <table className="w-full border-collapse text-sm">
                             <thead>
@@ -214,16 +214,16 @@ const WorkOrderPrint = () => {
                     {/* Process Checklist */}
                     <section className="mb-6">
                         <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
-                            Checklist Proses Produksi
+                            Production Process Checklist
                         </h2>
                         <table className="w-full border-collapse text-sm">
                             <thead>
                                 <tr className="bg-slate-100">
                                     <th className="border border-slate-300 px-3 py-2 text-left font-bold text-slate-700 w-8">✓</th>
-                                    <th className="border border-slate-300 px-3 py-2 text-left font-bold text-slate-700">Proses</th>
+                                    <th className="border border-slate-300 px-3 py-2 text-left font-bold text-slate-700">Process</th>
                                     <th className="border border-slate-300 px-3 py-2 text-center font-bold text-slate-700 w-20">Qty</th>
-                                    <th className="border border-slate-300 px-3 py-2 text-center font-bold text-slate-700 w-24">Tanggal</th>
-                                    <th className="border border-slate-300 px-3 py-2 text-center font-bold text-slate-700 w-32">TTD Operator</th>
+                                    <th className="border border-slate-300 px-3 py-2 text-center font-bold text-slate-700 w-24">Date</th>
+                                    <th className="border border-slate-300 px-3 py-2 text-center font-bold text-slate-700 w-32">Operator Signature</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -253,7 +253,7 @@ const WorkOrderPrint = () => {
                     {/* Notes */}
                     <section className="mb-6">
                         <h2 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-3">
-                            Catatan
+                            Notes
                         </h2>
                         <div className="border-2 border-dashed border-slate-300 rounded-lg p-4 min-h-[80px]">
                             <p className="text-sm text-slate-600">{order.notes || ''}</p>
@@ -264,7 +264,7 @@ const WorkOrderPrint = () => {
                     <footer className="border-t border-slate-200 pt-4 mt-auto">
                         <div className="flex justify-between items-center text-xs text-slate-400">
                             <div>
-                                <span className="font-bold">NKids Production System</span> • Dokumen internal
+                                <span className="font-bold">NKids Production</span> • Internal Document
                             </div>
                             <div>
                                 Status: <span className="font-bold uppercase">{order.status}</span>

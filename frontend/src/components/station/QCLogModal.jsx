@@ -3,12 +3,8 @@ import {
     X,
     CheckCircle2,
     XCircle,
-    Droplets,
-    Scissors,
     Activity,
     AlertTriangle,
-    Ruler,
-    Plus,
     Delete,
     Save,
     Loader2,
@@ -71,12 +67,12 @@ const QCLogModal = ({ isOpen, onClose, task, onSuccess }) => {
         // Target quantity validation
         const remainingQty = task ? (task.total - task.completed) : 0;
         if (goodQty + rejectQty > remainingQty) {
-            setError(`Total kuantitas (Good + Reject) tidak boleh melebihi sisa target (${remainingQty} pcs)`);
+            setError(`Total quantity (Good + Reject) cannot exceed remaining target (${remainingQty} pcs)`);
             return;
         }
 
         if (rejectQty > 0 && !rejectReason) {
-            setError('Silakan pilih alasan reject.');
+            setError('Please select a reject reason.');
             return;
         }
 
@@ -95,7 +91,7 @@ const QCLogModal = ({ isOpen, onClose, task, onSuccess }) => {
             onSuccess?.();
             onClose();
         } catch (err) {
-            const message = err.response?.data?.message || "Gagal submit QC report. Coba lagi.";
+            const message = err.response?.data?.message || "Failed to submit QC report. Try again.";
             setError(message);
         } finally {
             setLoading(false);
@@ -201,20 +197,20 @@ const QCLogModal = ({ isOpen, onClose, task, onSuccess }) => {
                             {/* Reject Reason Selection - Only show if rejectQty > 0 */}
                             {rejectQty > 0 && (
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Alasan Reject</label>
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Reject Reason</label>
                                     <div className="relative">
                                         <select
                                             value={rejectReason}
                                             onChange={(e) => { setRejectReason(e.target.value); setError(''); }}
                                             className="w-full h-11 pl-4 pr-10 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-800 dark:text-white focus:border-primary focus:ring-4 focus:ring-primary/5 outline-none appearance-none cursor-pointer transition-all shadow-sm"
                                         >
-                                            <option value="" disabled>Pilih alasan reject...</option>
+                                            <option value="" disabled>Select reject reason...</option>
                                             <option value="Jahitan Rusak">Jahitan Rusak / Broken Stitches</option>
                                             <option value="Noda Kain">Noda Kain / Stain</option>
                                             <option value="Kain Robek">Kain Robek / Fabric Tear</option>
                                             <option value="Ukuran Tidak Sesuai">Ukuran Tidak Sesuai / Measurement Error</option>
                                             <option value="Warna Belang">Warna Belang / Shading</option>
-                                            <option value="Lainnya">Lainnya (Tulis di Catatan)</option>
+                                            <option value="Lainnya">Other (Specify in Notes)</option>
                                         </select>
                                         <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
@@ -225,11 +221,11 @@ const QCLogModal = ({ isOpen, onClose, task, onSuccess }) => {
 
                             {/* Notes Section */}
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Catatan / Detail Tambahan (opsional)</label>
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest pl-1">Notes / Additional Details (optional)</label>
                                 <textarea
                                     value={notes}
                                     onChange={(e) => setNotes(e.target.value)}
-                                    placeholder="Contoh: kain habis, sobek, ukuran tidak sesuai..."
+                                    placeholder="e.g. fabric shortage, tear, incorrect sizing..."
                                     rows={3}
                                     className="w-full px-4 py-3 bg-white dark:bg-slate-800 border-2 border-slate-100 dark:border-slate-700 rounded-xl text-sm text-slate-800 dark:text-white placeholder:text-slate-300 focus:border-primary focus:ring-2 focus:ring-primary/5 outline-none resize-none transition-all"
                                 />
@@ -286,7 +282,7 @@ const QCLogModal = ({ isOpen, onClose, task, onSuccess }) => {
                             onClick={onClose}
                             className="px-6 h-11 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:bg-slate-50 transition-all"
                         >
-                            Batal
+                            Cancel
                         </button>
                         <button
                             onClick={handleSubmit}
@@ -306,7 +302,7 @@ const QCLogModal = ({ isOpen, onClose, task, onSuccess }) => {
                             ) : (
                                 <>
                                     <Save size={14} strokeWidth={3} />
-                                    Simpan QC
+                                    Save QC
                                 </>
                             )}
                         </button>

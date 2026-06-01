@@ -11,6 +11,11 @@ class ProductVariant extends Model
 
     protected $fillable = ['product_id', 'name', 'colors', 'sizes', 'image_url', 'price'];
 
+    protected $casts = [
+        'product_id' => 'integer',
+        'price' => 'decimal:2',
+    ];
+
     public function product()
     {
         return $this->belongsTo(Product::class);

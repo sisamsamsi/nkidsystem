@@ -13,6 +13,13 @@ use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            \Illuminate\Support\Facades\Gate::authorize('admin-only');
+            return $next($request);
+        })->except(['track']);
+    }
     /**
      * Display a listing of orders
      */

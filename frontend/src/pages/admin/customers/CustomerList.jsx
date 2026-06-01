@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
     Plus, Search, Filter, Mail, Phone, Pencil, Trash2, X, 
     ChevronLeft, ChevronRight, Loader2, AlertCircle, 
-    User, MapPin, Building2, ExternalLink
+    User, MapPin, Building2
 } from 'lucide-react';
 import { customerService } from '../../../services/customerService';
 
@@ -10,7 +10,15 @@ const CustomerList = () => {
     // --- State ---
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [searchVal, setSearchVal] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setSearchTerm(searchVal);
+        }, 300);
+        return () => clearTimeout(handler);
+    }, [searchVal]);
     const [customers, setCustomers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -26,6 +34,7 @@ const CustomerList = () => {
         address: '' 
     });
     const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, total: 0 });
+    const [deleteConfirmId, setDeleteConfirmId] = useState(null);
 
     // --- Helpers ---
     const generateCustomerCode = (name) => {
@@ -128,13 +137,19 @@ const CustomerList = () => {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this customer?')) return;
+    const handleDeleteClick = (id) => {
+        setDeleteConfirmId(id);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteConfirmId) return;
         try {
-            await customerService.delete(id);
+            await customerService.delete(deleteConfirmId);
             fetchCustomers(pagination.current_page);
+            setDeleteConfirmId(null);
         } catch (err) {
             setError('Failed to delete customer');
+            setDeleteConfirmId(null);
         }
     };
 
@@ -172,8 +187,8 @@ const CustomerList = () => {
                             type="text"
                             placeholder="Search by name, code, or brand..."
                             className="w-full pl-11 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-700 focus:ring-2 focus:ring-primary/10 focus:border-primary transition-all placeholder:text-slate-400 shadow-sm"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            value={searchVal}
+                            onChange={(e) => setSearchVal(e.target.value)}
                         />
                     </div>
                     
@@ -267,13 +282,15 @@ const CustomerList = () => {
                                                     onClick={() => handleOpenModal(customer)}
                                                     className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
                                                     title="Edit Customer"
+                                                    aria-label={`Edit ${customer.name || 'Customer'}`}
                                                 >
                                                     <Pencil size={16} />
                                                 </button>
                                                 <button 
-                                                    onClick={() => handleDelete(customer.id)}
+                                                    onClick={() => handleDeleteClick(customer.id)}
                                                     className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
                                                     title="Delete Customer"
+                                                    aria-label={`Delete ${customer.name || 'Customer'}`}
                                                 >
                                                     <Trash2 size={16} />
                                                 </button>
@@ -453,6 +470,38 @@ const CustomerList = () => {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Custom Delete Confirmation Modal */}
+            {deleteConfirmId && (
+                <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] animate-in fade-in duration-300" onClick={() => setDeleteConfirmId(null)}></div>
+                    
+                    {/* Modal Content */}
+                    <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 p-6 text-center">
+                        <div className="mx-auto w-12 h-12 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mb-4">
+                            <AlertCircle size={24} />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-800 mb-2">Confirm Delete</h3>
+                        <p className="text-sm text-slate-500 mb-6">Are you sure you want to delete this customer? This action is permanent and cannot be undone.</p>
+                        
+                        <div className="flex gap-3 justify-center">
+                            <button 
+                                onClick={() => setDeleteConfirmId(null)}
+                                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-bold rounded-xl transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={handleConfirmDelete}
+                                className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-rose-200"
+                            >
+                                Delete
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

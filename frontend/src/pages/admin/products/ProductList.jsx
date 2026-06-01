@@ -2,8 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { 
     Plus, Search, Filter, Pencil, Trash2, ChevronLeft, 
     ChevronRight, Loader2, AlertCircle, Package,
-    Layers, User, ExternalLink, MoreVertical, Eye, X, Image,
-    ChevronDown, ChevronUp, Save, Palette
+    Layers, X, Image, ChevronDown, ChevronUp, Save, Palette
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { productService, productVariantService } from '../../../services/productService';
@@ -15,7 +14,9 @@ const ProductList = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
     const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, total: 0 });
+    const [deleteConfirmId, setDeleteConfirmId] = useState(null);
     
     // New state for dropdown and edit functionality
     const [expandedProductId, setExpandedProductId] = useState(null);
@@ -23,13 +24,22 @@ const ProductList = () => {
     const [editForm, setEditForm] = useState({ name: '', colors: '', price: '' });
     const [saving, setSaving] = useState(false);
 
+    // Debounce effect
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearchTerm(searchTerm);
+        }, 300); // 300ms delay
+
+        return () => clearTimeout(handler);
+    }, [searchTerm]);
+
     const fetchProducts = useCallback(async (page = 1) => {
         setLoading(true);
         setError('');
         try {
             const params = { 
                 page, 
-                search: searchTerm || undefined 
+                search: debouncedSearchTerm || undefined 
             };
             const response = await productService.getAll(params);
             const data = response.data || response;
@@ -51,19 +61,25 @@ const ProductList = () => {
         } finally {
             setLoading(false);
         }
-    }, [searchTerm]);
+    }, [debouncedSearchTerm]);
 
     useEffect(() => {
         fetchProducts();
     }, [fetchProducts]);
 
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this product?')) return;
+    const handleDeleteClick = (id) => {
+        setDeleteConfirmId(id);
+    };
+
+    const handleConfirmDelete = async () => {
+        if (!deleteConfirmId) return;
         try {
-            await productService.delete(id);
+            await productService.delete(deleteConfirmId);
             fetchProducts(pagination.current_page);
+            setDeleteConfirmId(null);
         } catch (err) {
             setError('Failed to delete product');
+            setDeleteConfirmId(null);
         }
     };
 
@@ -417,13 +433,15 @@ const ProductList = () => {
                                                         onClick={() => navigate(`/admin/products/${product.id}`)}
                                                         className="p-2 text-slate-400 hover:text-primary hover:bg-primary/5 rounded-lg transition-all"
                                                         title="Edit Product"
+                                                        aria-label={`Edit ${product.name || 'Product'}`}
                                                     >
                                                         <Pencil size={16} />
                                                     </button>
                                                     <button 
-                                                        onClick={() => handleDelete(product.id)}
+                                                        onClick={() => handleDeleteClick(product.id)}
                                                         className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-all"
                                                         title="Delete Product"
+                                                        aria-label={`Delete ${product.name || 'Product'}`}
                                                     >
                                                         <Trash2 size={16} />
                                                     </button>
@@ -474,6 +492,37 @@ const ProductList = () => {
                     <button onClick={() => setError('')} className="ml-2 p-1 hover:bg-white/20 rounded-lg">
                         <X size={14} />
                     </button>
+                </div>
+            )}
+            {/* Custom Delete Confirmation Modal */}
+            {deleteConfirmId && (
+                <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px] animate-in fade-in duration-300" onClick={() => setDeleteConfirmId(null)}></div>
+                    
+                    {/* Modal Content */}
+                    <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-200 p-6 text-center">
+                        <div className="mx-auto w-12 h-12 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mb-4">
+                            <AlertCircle size={24} />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-800 mb-2">Confirm Delete</h3>
+                        <p className="text-sm text-slate-500 mb-6">Are you sure you want to delete this product? This action is permanent and cannot be undone.</p>
+                        
+                        <div className="flex gap-3 justify-center">
+                            <button 
+                                onClick={() => setDeleteConfirmId(null)}
+                                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-bold rounded-xl transition-all"
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                onClick={handleConfirmDelete}
+                                className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-rose-200"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

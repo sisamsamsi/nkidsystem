@@ -23,6 +23,7 @@ const OrderList = () => {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
+    const [searchVal, setSearchVal] = useState("");
     const [statusFilter, setStatusFilter] = useState("all");
     const [sortField, setSortField] = useState("created_at");
     const [sortOrder, setSortOrder] = useState("desc");
@@ -31,6 +32,13 @@ const OrderList = () => {
         last_page: 1,
         total: 0,
     });
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setSearchQuery(searchVal);
+        }, 300);
+        return () => clearTimeout(handler);
+    }, [searchVal]);
 
     useEffect(() => {
         fetchOrders(1);
@@ -182,8 +190,8 @@ const OrderList = () => {
                             type="text"
                             placeholder="Search orders..."
                             className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border-none rounded-xl text-sm text-slate-700 focus:ring-2 focus:ring-primary/20 transition-all placeholder:text-slate-400"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            value={searchVal}
+                            onChange={(e) => setSearchVal(e.target.value)}
                         />
                     </div>
 
@@ -377,7 +385,7 @@ const OrderList = () => {
                                             <div className="w-full max-w-[120px]">
                                                 <div className="flex justify-between text-[10px] font-semibold text-slate-500 mb-1">
                                                     <span>
-                                                        {order.overall_progress}
+                                                        {order.overall_progress || 0}
                                                         %
                                                     </span>
                                                 </div>
@@ -385,7 +393,7 @@ const OrderList = () => {
                                                     <div
                                                         className="bg-emerald-400 h-1.5 rounded-full transition-all duration-500"
                                                         style={{
-                                                            width: `${order.overall_progress}%`,
+                                                            width: `${order.overall_progress || 0}%`,
                                                         }}
                                                     ></div>
                                                 </div>
@@ -451,7 +459,7 @@ const OrderList = () => {
                             ) : (
                                 <tr>
                                     <td
-                                        colSpan="7"
+                                        colSpan="9"
                                         className="py-12 text-center text-slate-400"
                                     >
                                         <div className="flex flex-col items-center justify-center gap-2">

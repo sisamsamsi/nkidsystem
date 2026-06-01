@@ -585,7 +585,7 @@ const OrderWizard = () => {
                                 className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-bold shadow-lg shadow-emerald-500/20 flex items-center justify-center gap-2 transition-all disabled:opacity-50"
                             >
                                 {saving ? <Loader2 className="animate-spin" size={20} /> : <Check size={20} />}
-                                Confirm & Create Order
+                                {isEditMode ? 'Confirm & Update Order' : 'Confirm & Create Order'}
                             </button>
                         </div>
                     </div>

@@ -14,7 +14,11 @@ class ProductionProgressService
      */
     public function getRemainingQuantity(ProductionTask $task): int
     {
-        $totalRequired = $task->orderItem->quantity;
+        $orderItem = $task->orderItem;
+        if (!$orderItem) {
+            return 0;
+        }
+        $totalRequired = $orderItem->quantity;
         return max(0, $totalRequired - $task->completed_quantity);
     }
 
@@ -22,12 +26,48 @@ class ProductionProgressService
      * Check if a task can be worked on (sequential visibility)
      * A task can only be worked on if all previous sequence tasks are completed
      */
-    public function canWorkOnTask(ProductionTask $task): bool
+    public function canWorkOnTask(ProductionTask $task, $variantProcesses = null, $incompleteTasks = null): bool
     {
         $orderItem = $task->orderItem;
+        if (!$orderItem) {
+            return false;
+        }
         $variant = $orderItem->variant;
+        if (!$variant) {
+            return true;
+        }
 
-        // Get this task's sequence order
+        // If pre-fetched collections are provided, use them to avoid DB queries (N+1 avoidance)
+        if ($variantProcesses !== null && $incompleteTasks !== null) {
+            $variantProcessesForVar = $variantProcesses->get($variant->id) ?? collect();
+            
+            $currentProcess = $variantProcessesForVar
+                ->where('process_template_id', $task->process_template_id)
+                ->first();
+
+            if (!$currentProcess) {
+                return true;
+            }
+
+            $previousProcessTemplateIds = $variantProcessesForVar
+                ->where('sequence_order', '<', $currentProcess->sequence_order)
+                ->pluck('process_template_id')
+                ->toArray();
+
+            if (empty($previousProcessTemplateIds)) {
+                return true;
+            }
+
+            $incompleteTasksForOrder = $incompleteTasks->get($orderItem->id) ?? collect();
+            
+            $incompletePreviousTasks = $incompleteTasksForOrder
+                ->whereIn('process_template_id', $previousProcessTemplateIds)
+                ->isNotEmpty();
+
+            return !$incompletePreviousTasks;
+        }
+
+        // Fallback to standard DB queries if not pre-fetched (keeping signature compatible)
         $currentProcess = VariantProcess::where('product_variant_id', $variant->id)
             ->where('process_template_id', $task->process_template_id)
             ->first();
@@ -64,8 +104,26 @@ class ProductionProgressService
             ->where('status', '!=', 'completed')
             ->get();
 
+        if ($tasks->isEmpty()) {
+            return $tasks;
+        }
+
+        // Extract IDs for bulk pre-fetching (Avoiding N+1 queries!)
+        $variantIds = $tasks->pluck('orderItem.product_variant_id')->unique()->filter()->toArray();
+        $orderItemIds = $tasks->pluck('order_item_id')->unique()->filter()->toArray();
+
+        // Fetch variant processes and incomplete tasks in bulk
+        $variantProcesses = VariantProcess::whereIn('product_variant_id', $variantIds)
+            ->get()
+            ->groupBy('product_variant_id');
+
+        $incompleteTasksByOrderItem = ProductionTask::whereIn('order_item_id', $orderItemIds)
+            ->where('status', '!=', 'completed')
+            ->get()
+            ->groupBy('order_item_id');
+
         // Filter by sequential visibility
-        return $tasks->filter(fn($task) => $this->canWorkOnTask($task));
+        return $tasks->filter(fn($task) => $this->canWorkOnTask($task, $variantProcesses, $incompleteTasksByOrderItem));
     }
 
     /**
@@ -73,7 +131,7 @@ class ProductionProgressService
      */
     public function calculateOrderItemProgress(OrderItem $orderItem): int
     {
-        $tasks = $orderItem->productionTasks;
+        $tasks = $orderItem->productionTasks()->get();
         
         if ($tasks->isEmpty()) {
             return 0;
@@ -82,11 +140,13 @@ class ProductionProgressService
         $totalWeight = 0;
         $weightedProgress = 0;
 
-        foreach ($tasks as $task) {
-            $variantProcess = VariantProcess::where('product_variant_id', $orderItem->product_variant_id)
-                ->where('process_template_id', $task->process_template_id)
-                ->first();
+        // Optimasi N+1 Queries: pre-fetch variant processes
+        $variantProcesses = VariantProcess::where('product_variant_id', $orderItem->product_variant_id)
+            ->get()
+            ->keyBy('process_template_id');
 
+        foreach ($tasks as $task) {
+            $variantProcess = $variantProcesses->get($task->process_template_id);
             $weight = $variantProcess ? $variantProcess->weight : 1;
             $totalWeight += $weight;
             $weightedProgress += ($task->progress_percent * $weight);

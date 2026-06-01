@@ -40,6 +40,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('customers', function (Blueprint $table) {
+            $table->string('code')->nullable(false)->change();
             $table->dropColumn(['email', 'phone', 'address']);
             $table->text('contact_info')->nullable();
             if (Schema::hasColumn('customers', 'brand')) {

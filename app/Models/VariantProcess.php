@@ -11,6 +11,13 @@ class VariantProcess extends Model
 
     protected $fillable = ['product_variant_id', 'process_template_id', 'weight', 'sequence_order'];
 
+    protected $casts = [
+        'product_variant_id' => 'integer',
+        'process_template_id' => 'integer',
+        'weight' => 'integer',
+        'sequence_order' => 'integer',
+    ];
+
     public function variant()
     {
         return $this->belongsTo(ProductVariant::class, 'product_variant_id');

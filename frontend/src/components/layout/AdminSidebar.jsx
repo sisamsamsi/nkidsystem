@@ -1,43 +1,43 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Users, Shirt, ShoppingCart, Factory, BarChart, Settings, LifeBuoy, Package, Layers } from 'lucide-react';
+import { LayoutDashboard, Users, ShoppingCart, Factory, BarChart, LifeBuoy, Package, Layers, Building2 } from 'lucide-react';
+
+// Grouped Navigation Items
+const NAV_GROUPS = [
+    {
+        title: 'Overview',
+        items: [
+            { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
+        ]
+    },
+    {
+        title: 'Management',
+        items: [
+            { icon: ShoppingCart, label: 'Orders', path: '/admin/orders' },
+            { icon: Building2, label: 'Customers', path: '/admin/customers' },
+            { icon: Package, label: 'Products', path: '/admin/products' },
+            { icon: Users, label: 'Employees', path: '/admin/employees' },
+        ]
+    },
+    {
+        title: 'Production',
+        items: [
+            { icon: Factory, label: 'Production Board', path: '/admin/production' },
+            { icon: BarChart, label: 'Reports', path: '/admin/reports' },
+        ]
+    }
+];
 
 const AdminSidebar = () => {
-    // Grouped Navigation Items
-    const navGroups = [
-        {
-            title: 'Overview',
-            items: [
-                { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
-            ]
-        },
-        {
-            title: 'Management',
-            items: [
-                { icon: ShoppingCart, label: 'Orders', path: '/admin/orders' },
-                { icon: Users, label: 'Customers', path: '/admin/customers' },
-                { icon: Package, label: 'Products', path: '/admin/products' },
-                { icon: Users, label: 'Employees', path: '/admin/employees' },
-            ]
-        },
-        {
-            title: 'Production',
-            items: [
-                { icon: Factory, label: 'Production Board', path: '/admin/production' },
-                { icon: BarChart, label: 'Reports', path: '/admin/reports' },
-            ]
-        }
-    ];
-
     return (
         <aside className="w-[240px] bg-white flex flex-col flex-shrink-0 overflow-y-auto hidden md:flex h-full py-5 px-3 gap-6">
             {/* Logo Area (Optional, uses text for now) */}
             <div className="px-2 mb-1">
-                <span className="text-xl font-bold text-[#111418]">Nkids<span className="text-primary">System</span></span>
+                <span className="text-xl font-bold text-[#111418]">NKids <span className="text-primary">Production</span></span>
             </div>
 
             <nav className="flex flex-col gap-4">
-                {navGroups.map((group, idx) => (
+                {NAV_GROUPS.map((group, idx) => (
                     <div key={idx} className="flex flex-col gap-1.5">
                         <p className="px-3 text-[10px] font-semibold text-gray-400 uppercase tracking-widest">{group.title}</p>
                         <div className="flex flex-col gap-0.5">
@@ -85,7 +85,7 @@ const AdminSidebar = () => {
                         }
                     >
                         <Layers size={18} strokeWidth={1.5} />
-                        <span className="text-sm">Sub-Proses</span>
+                        <span className="text-sm">Sub-Processes</span>
                     </NavLink>
                 </div>
             </nav>
@@ -99,7 +99,10 @@ const AdminSidebar = () => {
                         <span className="text-sm font-bold text-gray-900">Need Help?</span>
                     </div>
                     <p className="text-xs text-gray-500 leading-relaxed mb-3">Contact support for any production issues.</p>
-                    <button className="w-full bg-white text-gray-900 text-xs font-semibold py-2.5 rounded-xl hover:shadow-md transition-shadow">
+                    <button 
+                        onClick={() => window.location.href = 'mailto:support@nkids.com'}
+                        className="w-full bg-white text-gray-900 text-xs font-semibold py-2.5 rounded-xl hover:shadow-md transition-shadow cursor-pointer"
+                    >
                         Contact Support
                     </button>
                 </div>

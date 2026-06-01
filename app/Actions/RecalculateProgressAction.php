@@ -18,6 +18,11 @@ class RecalculateProgressAction
      */
     public function execute(ProductionTask $task): void
     {
+        $task = $task->fresh(['orderItem']);
+        if (!$task) {
+            return;
+        }
+
         $orderItem = $task->orderItem;
         
         if (!$orderItem) {
@@ -28,15 +33,16 @@ class RecalculateProgressAction
         $this->recalculateOrderItemProgress($orderItem);
 
         // Recalculate order overall progress
-        $this->recalculateOrderProgress($orderItem->order);
+        $this->recalculateOrderProgress($orderItem->order()->first());
     }
 
     /**
-     * Recalculate order item progress using weighted average
+     * Display a listing of products
      */
     private function recalculateOrderItemProgress(OrderItem $orderItem): void
     {
-        $tasks = $orderItem->productionTasks;
+        // Fresh load tasks directly from DB
+        $tasks = $orderItem->productionTasks()->get();
         
         if ($tasks->isEmpty()) {
             return;
@@ -45,11 +51,14 @@ class RecalculateProgressAction
         $totalWeight = 0;
         $weightedProgress = 0;
 
+        // Optimasi N+1 Queries: pre-fetch variant processes
+        $variantProcesses = VariantProcess::where('product_variant_id', $orderItem->product_variant_id)
+            ->get()
+            ->keyBy('process_template_id');
+
         foreach ($tasks as $task) {
-            // Get weight from variant_processes
-            $variantProcess = VariantProcess::where('product_variant_id', $orderItem->product_variant_id)
-                ->where('process_template_id', $task->process_template_id)
-                ->first();
+            // Get weight from pre-fetched variant_processes
+            $variantProcess = $variantProcesses->get($task->process_template_id);
 
             $weight = $variantProcess ? $variantProcess->weight : 1;
             $totalWeight += $weight;

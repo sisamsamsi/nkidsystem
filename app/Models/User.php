@@ -62,4 +62,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(TaskAssignment::class);
     }
+
+    public function qcReports()
+    {
+        return $this->hasMany(QcReport::class, 'inspector_id');
+    }
 }

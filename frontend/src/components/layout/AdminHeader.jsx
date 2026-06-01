@@ -1,13 +1,19 @@
-import React from 'react';
-import { Search, Bell, ChevronDown, Check, Factory } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Bell, ChevronDown, Check, Factory, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import authService from '../../services/authService';
 
 const AdminHeader = () => {
     const navigate = useNavigate();
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const user = authService.getStoredUser();
     const userName = user?.name || 'Jane Admin';
     const userRole = user?.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1)) : 'Production Mgr';
+
+    const handleLogout = async () => {
+        authService.logout();
+        navigate('/login');
+    };
 
     return (
         <header className="h-16 bg-white border-b border-[#f0f2f5] flex items-center justify-between px-6 sticky top-0 z-50 shadow-sm">
@@ -44,16 +50,40 @@ const AdminHeader = () => {
                         <span className="absolute top-0 right-0 size-2 bg-red-500 rounded-full border-2 border-white"></span>
                     </button>
 
-                    <button className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg transition-colors">
-                        <div className="flex items-center justify-center rounded-full size-8 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-900/40 text-sm select-none">
-                            {userName.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="hidden sm:block text-left">
-                            <p className="text-sm font-medium text-[#111418] leading-none">{userName}</p>
-                            <p className="text-xs text-[#60708a] mt-0.5">{userRole}</p>
-                        </div>
-                        <ChevronDown className="text-[#60708a]" size={20} />
-                    </button>
+                    <div className="relative">
+                        <button 
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1.5 rounded-lg transition-colors border border-transparent hover:border-slate-100"
+                        >
+                            <div className="flex items-center justify-center rounded-full size-8 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-bold border border-blue-200 dark:border-blue-900/40 text-sm select-none">
+                                {userName.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="hidden sm:block text-left">
+                                <p className="text-sm font-medium text-[#111418] leading-none">{userName}</p>
+                                <p className="text-xs text-[#60708a] mt-0.5">{userRole}</p>
+                            </div>
+                            <ChevronDown className="text-[#60708a]" size={20} />
+                        </button>
+
+                        {isDropdownOpen && (
+                            <>
+                                <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)}></div>
+                                <div className="absolute right-0 mt-2 w-48 bg-white border border-slate-100 rounded-xl shadow-lg py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-200">
+                                    <div className="px-4 py-2 border-b border-slate-50 text-left">
+                                        <p className="text-sm font-bold text-slate-800 leading-tight">{userName}</p>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{userRole}</p>
+                                    </div>
+                                    <button 
+                                        onClick={handleLogout}
+                                        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-slate-600 hover:bg-rose-50 hover:text-rose-600 transition-colors text-left"
+                                    >
+                                        <LogOut size={16} />
+                                        <span>Logout</span>
+                                    </button>
+                                </div>
+                            </>
+                        )}
+                    </div>
                 </div>
             </div>
         </header>

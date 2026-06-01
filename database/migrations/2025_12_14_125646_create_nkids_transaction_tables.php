@@ -12,8 +12,8 @@ return new class extends Migration
             $table->id();
             $table->string('po_number')->unique();
             $table->date('date');
-            $table->foreignId('customer_id')->constrained('customers');
-            $table->foreignId('branch_id')->constrained('branches');
+            $table->foreignId('customer_id')->constrained('customers')->onDelete('restrict');
+            $table->foreignId('branch_id')->constrained('branches')->onDelete('restrict');
             $table->enum('priority', ['low', 'normal', 'high', 'urgent'])->default('normal');
             $table->enum('status', ['pending', 'processing', 'completed', 'cancelled'])->default('pending');
             $table->text('notes')->nullable();
@@ -24,7 +24,7 @@ return new class extends Migration
         Schema::create('order_items', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
-            $table->foreignId('product_variant_id')->constrained('product_variants');
+            $table->foreignId('product_variant_id')->constrained('product_variants')->onDelete('restrict');
             $table->string('color');
             $table->string('size');
             $table->integer('quantity');
@@ -36,7 +36,7 @@ return new class extends Migration
         Schema::create('production_tasks', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_item_id')->constrained('order_items')->onDelete('cascade');
-            $table->foreignId('process_template_id')->constrained('process_templates');
+            $table->foreignId('process_template_id')->constrained('process_templates')->onDelete('restrict');
             $table->enum('status', ['pending', 'in_progress', 'completed'])->default('pending');
             $table->integer('progress_percent')->default(0);
             $table->integer('completed_quantity')->default(0);
@@ -48,7 +48,7 @@ return new class extends Migration
         Schema::create('work_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('production_task_id')->constrained('production_tasks')->onDelete('cascade');
-            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('user_id')->constrained('users')->onDelete('restrict');
             $table->integer('quantity');
             $table->text('notes')->nullable();
             $table->timestamps();
@@ -56,8 +56,8 @@ return new class extends Migration
 
         Schema::create('task_assignments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('production_task_id')->constrained('production_tasks');
-            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('production_task_id')->constrained('production_tasks')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('restrict');
             $table->date('assigned_date');
             $table->date('completed_date')->nullable();
             $table->timestamps();
@@ -65,8 +65,8 @@ return new class extends Migration
 
         Schema::create('qc_reports', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('production_task_id')->constrained('production_tasks');
-            $table->foreignId('inspector_id')->constrained('users');
+            $table->foreignId('production_task_id')->constrained('production_tasks')->onDelete('cascade');
+            $table->foreignId('inspector_id')->constrained('users')->onDelete('restrict');
             $table->integer('passed_quantity');
             $table->integer('reject_quantity');
             $table->text('reject_reason')->nullable();
@@ -76,7 +76,7 @@ return new class extends Migration
 
         Schema::create('shipments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->constrained('orders');
+            $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
             $table->string('tracking_number')->nullable();
             $table->date('shipped_date');
             $table->enum('status', ['pending', 'shipped', 'delivered'])->default('pending');
@@ -86,7 +86,7 @@ return new class extends Migration
 
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('order_id')->constrained('orders');
+            $table->foreignId('order_id')->constrained('orders')->onDelete('cascade');
             $table->string('invoice_number')->unique();
             $table->date('issue_date');
             $table->date('due_date');

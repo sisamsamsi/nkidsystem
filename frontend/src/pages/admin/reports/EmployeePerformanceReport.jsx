@@ -19,6 +19,95 @@ const EmployeePerformanceReport = () => {
     const [expandedRows, setExpandedRows] = useState({});
     const [dateRange, setDateRange] = useState('30'); // days
 
+    const handleExportCSV = () => {
+        if (employees.length === 0) return;
+        
+        // CSV Headers
+        const headers = ['Employee ID', 'Employee Name', 'Role', 'Total Output (pcs)', 'Logs Count', 'Avg / Day'];
+        
+        // CSV Rows
+        const rows = employees.map(emp => [
+            emp.user_id,
+            `"${emp.user_name?.replace(/"/g, '""')}"`,
+            emp.role || 'Operator',
+            emp.total_quantity || 0,
+            emp.task_count || 0,
+            emp.avg_per_day || 0
+        ]);
+        
+        // Combine into CSV string
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(e => e.join(','))
+        ].join('\n');
+        
+        // Create Blob and download link
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `employee_performance_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handleExportPDF = () => {
+        if (employees.length === 0) return;
+        
+        const printWindow = window.open('', '_blank');
+        const content = `
+            <html>
+            <head>
+                <title>Employee Performance Report</title>
+                <style>
+                    body { font-family: sans-serif; padding: 20px; color: #333; }
+                    h1 { margin-bottom: 5px; }
+                    p { margin-top: 0; color: #666; font-size: 14px; }
+                    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; font-size: 12px; }
+                    th { background-color: #f5f5f5; }
+                    .text-right { text-align: right; }
+                </style>
+            </head>
+            <body>
+                <h1>Employee Performance Report</h1>
+                <p>Generated on: ${new Date().toLocaleDateString()}</p>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Employee Name</th>
+                            <th>Role</th>
+                            <th class="text-right">Total Output</th>
+                            <th class="text-right">Logs Count</th>
+                            <th class="text-right">Avg / Day</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${employees.map(emp => `
+                            <tr>
+                                <td>#${emp.user_id}</td>
+                                <td><strong>${emp.user_name}</strong></td>
+                                <td>${emp.role || 'Operator'}</td>
+                                <td class="text-right">${emp.total_quantity?.toLocaleString() || 0} pcs</td>
+                                <td class="text-right">${emp.task_count || 0}</td>
+                                <td class="text-right">${emp.avg_per_day || 0}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <script>
+                    window.onload = function() { window.print(); window.close(); }
+                </script>
+            </body>
+            </html>
+        `;
+        printWindow.document.write(content);
+        printWindow.document.close();
+    };
+
     const fetchData = useCallback(async () => {
         setLoading(true);
         setError('');
@@ -118,11 +207,17 @@ const EmployeePerformanceReport = () => {
                     </div>
 
                     {/* Export Buttons */}
-                    <button className="flex items-center justify-center gap-2 h-10 px-4 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-bold transition-colors">
+                    <button 
+                        onClick={handleExportCSV}
+                        className="flex items-center justify-center gap-2 h-10 px-4 rounded-lg bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-sm font-bold transition-colors"
+                    >
                         <Download size={18} />
                         <span>Export CSV</span>
                     </button>
-                    <button className="flex items-center justify-center gap-2 h-10 px-4 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold transition-colors">
+                    <button 
+                        onClick={handleExportPDF}
+                        className="flex items-center justify-center gap-2 h-10 px-4 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold transition-colors"
+                    >
                         <FileText size={18} />
                         <span>Export PDF</span>
                     </button>

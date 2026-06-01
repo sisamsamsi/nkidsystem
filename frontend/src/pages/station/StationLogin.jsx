@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from "react";
 import {
     Factory,
-    Wifi,
     RefreshCw,
-    ChevronDown,
     CheckCircle2,
     Scissors,
     Shirt,

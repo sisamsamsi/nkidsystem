@@ -17,7 +17,10 @@ class VariantSubProcess extends Model
     ];
 
     protected $casts = [
-        'weight' => 'decimal:2',
+        'product_variant_id' => 'integer',
+        'sub_process_id' => 'integer',
+        'sequence_order' => 'integer',
+        'weight' => 'integer',
     ];
 
     /**

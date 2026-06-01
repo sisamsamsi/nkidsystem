@@ -8,16 +8,44 @@ use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            \Illuminate\Support\Facades\Gate::authorize('admin-only');
+            return $next($request);
+        });
+    }
+
     /**
      * Employee performance report
      */
     public function employeePerformance(Request $request)
     {
-        $startDate = $request->input('start_date', now()->subDays(30)->format('Y-m-d'));
-        $endDate = $request->input('end_date', now()->format('Y-m-d'));
+        $request->validate([
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
+        ]);
 
-        // Get all users with their work logs in the date range
-        $users = \App\Models\User::with(['workLogs' => function ($query) use ($startDate, $endDate) {
+        $startDateStr = $request->input('start_date', now()->subDays(30)->format('Y-m-d'));
+        $endDateStr = $request->input('end_date', now()->format('Y-m-d'));
+
+        $start = \Carbon\Carbon::parse($startDateStr);
+        $end = \Carbon\Carbon::parse($endDateStr);
+
+        if ($start->diffInDays($end) > 90) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Rentang tanggal pencarian laporan tidak boleh melebihi 90 hari.'
+            ], 422);
+        }
+
+        $startDate = $start->format('Y-m-d');
+        $endDate = $end->format('Y-m-d');
+
+        // Get only users who have work logs in the date range (N+1 Optimization)
+        $users = \App\Models\User::whereHas('workLogs', function ($query) use ($startDate, $endDate) {
+            $query->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59']);
+        })->with(['workLogs' => function ($query) use ($startDate, $endDate) {
             $query->whereBetween('created_at', [$startDate . ' 00:00:00', $endDate . ' 23:59:59'])
                   ->with(['task.processTemplate', 'task.orderItem.order']);
         }])->get();
@@ -93,17 +121,18 @@ class ReportController extends Controller
     public function productionSummary(Request $request)
     {
         $pipeline = \App\Models\ProductionTask::query()
-            ->selectRaw('process_templates.name as label, COUNT(*) as count, SUM(production_tasks.completed_quantity) as val')
+            ->selectRaw('process_templates.name as label, COUNT(*) as count, AVG(production_tasks.progress_percent) as val')
             ->join('process_templates', 'production_tasks.process_template_id', '=', 'process_templates.id')
             ->where('production_tasks.status', '!=', 'completed')
             ->groupBy('process_templates.id', 'process_templates.name')
             ->get()
             ->map(function ($item) {
+                $val = round((float) $item->val, 0);
                 return [
                     'label' => $item->label,
-                    'val' => (int) $item->val,
+                    'val' => $val,
                     'count' => (int) $item->count,
-                    'width' => min(100, max(10, (int) ($item->val / 10))) . '%'
+                    'width' => $val . '%'
                 ];
             });
 

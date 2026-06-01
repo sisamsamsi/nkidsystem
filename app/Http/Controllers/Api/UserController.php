@@ -10,6 +10,14 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            \Illuminate\Support\Facades\Gate::authorize('admin-only');
+            return $next($request);
+        })->only(['store', 'update', 'destroy']);
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -33,11 +41,28 @@ class UserController extends Controller
             });
         }
 
-        $users = $query->latest()->get();
+        // Return flat list if paginate=false is requested or if role=operator is requested (like in stasiun dropdown)
+        if ($request->get('paginate') === 'false' || $request->get('role') === 'operator') {
+            $users = $query->latest()->get();
+            return response()->json([
+                'success' => true,
+                'data' => $users
+            ]);
+        }
+
+        $perPage = (int) $request->get('per_page', 15);
+        if ($perPage > 100) {
+            $perPage = 100;
+        }
+
+        $users = $query->latest()->paginate($perPage);
 
         return response()->json([
             'success' => true,
-            'data' => $users
+            'data' => $users->items(),
+            'current_page' => $users->currentPage(),
+            'last_page' => $users->lastPage(),
+            'total' => $users->total(),
         ]);
     }
 

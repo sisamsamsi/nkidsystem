@@ -6,7 +6,8 @@ import {
     ArrowUpDown, History, LayoutGrid, List
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { productionTaskService } from '../../../services/productionTaskService';
+import { productionTaskService } from '../../../services/productionService';
+import { productService } from '../../../services/productService';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getColorBlockInlineStyle } from '../../../lib/colorblock';
@@ -14,6 +15,16 @@ import { getColorBlockInlineStyle } from '../../../lib/colorblock';
 function cn(...inputs) {
     return twMerge(clsx(inputs));
 }
+
+const SortIcon = ({ field, sortField }) => (
+    <ArrowUpDown 
+        size={12} 
+        className={cn(
+            "transition-all duration-300",
+            sortField === field ? "opacity-100 text-primary scale-110" : "opacity-0 group-hover/th:opacity-50"
+        )} 
+    />
+);
 
 const ProductionBoard = () => {
     const navigate = useNavigate();
@@ -31,18 +42,30 @@ const ProductionBoard = () => {
         last_page: 1,
         total: 0
     });
+    const [stations, setStations] = useState([{ id: 'all', name: 'All Stations' }]);
+    const [error, setError] = useState('');
 
-    const stations = [
-        { id: 'all', name: 'Semua Station' },
-        { id: '1', name: 'Cutting' },
-        { id: '2', name: 'Sablon' },
-        { id: '3', name: 'Sewing' },
-        { id: '4', name: 'Finishing' },
-        { id: '5', name: 'Packing' },
-    ];
+    useEffect(() => {
+        const fetchStations = async () => {
+            try {
+                const response = await productService.getProcessTemplates();
+                const templates = response.data || response;
+                if (Array.isArray(templates)) {
+                    setStations([
+                        { id: 'all', name: 'All Stations' },
+                        ...templates.map(t => ({ id: String(t.id), name: t.name }))
+                    ]);
+                }
+            } catch (err) {
+                console.error('Failed to fetch stations', err);
+            }
+        };
+        fetchStations();
+    }, []);
 
     const fetchTasks = useCallback(async (page = 1) => {
         setLoading(true);
+        setError('');
         try {
             const params = {
                 page,
@@ -66,6 +89,7 @@ const ProductionBoard = () => {
             });
         } catch (err) {
             console.error('Failed to fetch tasks', err);
+            setError('Failed to load production tasks. Please check your internet connection.');
         } finally {
             setLoading(false);
         }
@@ -122,15 +146,7 @@ const ProductionBoard = () => {
         return colors[stationName] || 'bg-slate-50 text-slate-500 border-slate-100';
     };
 
-    const SortIcon = ({ field }) => (
-        <ArrowUpDown 
-            size={12} 
-            className={cn(
-                "transition-all duration-300",
-                sortField === field ? "opacity-100 text-primary scale-110" : "opacity-0 group-hover/th:opacity-50"
-            )} 
-        />
-    );
+    // SortIcon component moved to module scope
 
     return (
         <div className="flex flex-col h-full space-y-6 animate-in fade-in duration-500">
@@ -143,7 +159,7 @@ const ProductionBoard = () => {
                         </div>
                         <h1 className="text-2xl font-black text-slate-800 tracking-tight">Production Board</h1>
                     </div>
-                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-11">Monitoring Real-time Produksi Garment</p>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest ml-11">Real-time Garment Production Monitoring</p>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -152,10 +168,17 @@ const ProductionBoard = () => {
                         className="h-12 px-6 bg-slate-800 hover:bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 shadow-xl shadow-slate-200 active:scale-95 transition-all"
                     >
                         <Plus size={18} strokeWidth={3} />
-                        Order Baru
+                        New Order
                     </button>
                 </div>
             </div>
+
+            {error && (
+                <div className="p-4 bg-rose-50 border border-rose-100 text-rose-600 rounded-2xl flex items-center gap-3 text-sm font-medium animate-in slide-in-from-top-2">
+                    <AlertCircle size={20} />
+                    {error}
+                </div>
+            )}
 
             {/* Filters Card */}
             <div className="bg-white p-2 rounded-[2rem] border border-slate-100 shadow-sm flex flex-wrap items-center gap-2">
@@ -164,7 +187,7 @@ const ProductionBoard = () => {
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={18} strokeWidth={2.5} />
                     <input 
                         type="text"
-                        placeholder="Cari PO atau Produk..."
+                        placeholder="Search PO or Product..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="w-full h-12 pl-12 pr-4 bg-slate-50 border border-transparent rounded-[1.25rem] focus:bg-white focus:border-primary/20 focus:ring-4 focus:ring-primary/5 transition-all outline-none font-bold text-slate-700 text-sm"
@@ -193,10 +216,10 @@ const ProductionBoard = () => {
                         onChange={(e) => setStatusFilter(e.target.value)}
                         className="h-12 bg-transparent font-black text-[10px] uppercase tracking-widest text-slate-600 outline-none cursor-pointer"
                     >
-                        <option value="all">Semua Status</option>
-                        <option value="pending">Antrian</option>
-                        <option value="in_progress">Berjalan</option>
-                        <option value="completed">Selesai</option>
+                        <option value="all">All Statuses</option>
+                        <option value="pending">Pending</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option>
                     </select>
                 </div>
 
@@ -208,7 +231,7 @@ const ProductionBoard = () => {
                         onChange={(e) => setPriorityFilter(e.target.value)}
                         className="h-12 bg-transparent font-black text-[10px] uppercase tracking-widest text-slate-600 outline-none cursor-pointer"
                     >
-                        <option value="all">Prioritas</option>
+                        <option value="all">Priority</option>
                         <option value="urgent">Urgent</option>
                         <option value="high">High</option>
                         <option value="normal">Normal</option>
@@ -225,7 +248,7 @@ const ProductionBoard = () => {
                         )}
                     >
                         {sortBy === 'recent' ? <History size={14} strokeWidth={3} /> : <ArrowUpDown size={14} strokeWidth={3} />}
-                        {sortBy === 'recent' ? 'Terbaru (Recent)' : 'Urut Prioritas'}
+                        {sortBy === 'recent' ? 'Recent' : 'Sort Priority'}
                     </button>
                 </div>
             </div>
@@ -242,7 +265,7 @@ const ProductionBoard = () => {
                                 >
                                     <div className="flex items-center gap-2">
                                         Order Info
-                                        <SortIcon field="po_number" />
+                                        <SortIcon field="po_number" sortField={sortField} />
                                     </div>
                                 </th>
                                 <th 
@@ -251,7 +274,7 @@ const ProductionBoard = () => {
                                 >
                                     <div className="flex items-center gap-2">
                                         Station
-                                        <SortIcon field="station" />
+                                        <SortIcon field="station" sortField={sortField} />
                                     </div>
                                 </th>
                                 <th 
@@ -260,7 +283,7 @@ const ProductionBoard = () => {
                                 >
                                     <div className="flex items-center gap-2">
                                         Priority
-                                        <SortIcon field="priority" />
+                                        <SortIcon field="priority" sortField={sortField} />
                                     </div>
                                 </th>
                                 <th 
@@ -269,7 +292,7 @@ const ProductionBoard = () => {
                                 >
                                     <div className="flex items-center gap-2">
                                         Work Progress
-                                        <SortIcon field="progress" />
+                                        <SortIcon field="progress" sortField={sortField} />
                                     </div>
                                 </th>
                                 <th className="px-6 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Quantity</th>
@@ -279,7 +302,7 @@ const ProductionBoard = () => {
                                 >
                                     <div className="flex items-center justify-end gap-2">
                                         Updated
-                                        <SortIcon field="updated_at" />
+                                        <SortIcon field="updated_at" sortField={sortField} />
                                     </div>
                                 </th>
                                 <th className="px-8 py-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Action</th>
@@ -399,10 +422,14 @@ const ProductionBoard = () => {
                                                     onClick={() => navigate(`/admin/production/tasks/${task.id}`)}
                                                     className="p-2.5 bg-white hover:bg-slate-50 border border-slate-100 rounded-xl text-slate-400 hover:text-primary shadow-sm transition-all active:scale-95"
                                                     title="View Details"
+                                                    aria-label={`View details of PO ${task.order_item?.order?.po_number}`}
                                                 >
                                                     <ArrowUpRight size={18} strokeWidth={2.5} />
                                                 </button>
-                                                <button className="p-2.5 bg-white hover:bg-slate-50 border border-slate-100 rounded-xl text-slate-400 hover:text-slate-600 shadow-sm transition-all active:scale-95">
+                                                <button 
+                                                    className="p-2.5 bg-white hover:bg-slate-50 border border-slate-100 rounded-xl text-slate-400 hover:text-slate-600 shadow-sm transition-all active:scale-95"
+                                                    aria-label="More options"
+                                                >
                                                     <MoreHorizontal size={18} strokeWidth={2.5} />
                                                 </button>
                                             </div>
@@ -416,7 +443,7 @@ const ProductionBoard = () => {
                                             <div className="w-16 h-16 bg-slate-50 rounded-3xl flex items-center justify-center text-slate-300">
                                                 <Info size={32} strokeWidth={1.5} />
                                             </div>
-                                            <p className="text-sm font-black text-slate-400 uppercase tracking-widest">Tidak ada data produksi ditemukan</p>
+                                            <p className="text-sm font-black text-slate-400 uppercase tracking-widest">No production tasks found</p>
                                         </div>
                                     </td>
                                 </tr>

@@ -40,4 +40,12 @@ class RecalculateOrderProgress implements ShouldQueue
     {
         $this->recalculateAction->execute($event->task);
     }
+
+    /**
+     * Handle a job failure.
+     */
+    public function failed(TaskProgressUpdated $event, \Throwable $exception): void
+    {
+        \Log::error("RecalculateOrderProgress queue failed for task ID {$event->task->id}: {$exception->getMessage()}");
+    }
 }

@@ -20,6 +20,16 @@ class ProductionTask extends Model
         'end_date'
     ];
 
+    protected $casts = [
+        'order_item_id' => 'integer',
+        'process_template_id' => 'integer',
+        'sub_process_id' => 'integer',
+        'progress_percent' => 'integer',
+        'completed_quantity' => 'integer',
+        'start_date' => 'date',
+        'end_date' => 'date',
+    ];
+
     public function orderItem()
     {
         return $this->belongsTo(OrderItem::class);
@@ -38,5 +48,15 @@ class ProductionTask extends Model
     public function workLogs()
     {
         return $this->hasMany(WorkLog::class);
+    }
+
+    public function assignments()
+    {
+        return $this->hasMany(TaskAssignment::class);
+    }
+
+    public function qcReports()
+    {
+        return $this->hasMany(QcReport::class);
     }
 }

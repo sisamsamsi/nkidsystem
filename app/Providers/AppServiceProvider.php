@@ -27,5 +27,14 @@ class AppServiceProvider extends ServiceProvider
             TaskProgressUpdated::class,
             RecalculateOrderProgress::class
         );
+
+        // Register Gates
+        \Illuminate\Support\Facades\Gate::define('admin-only', function ($user) {
+            return $user->role === 'admin';
+        });
+
+        \Illuminate\Support\Facades\Gate::define('qc-or-admin', function ($user) {
+            return in_array($user->role, ['admin', 'qc']);
+        });
     }
 }

@@ -21,6 +21,14 @@ class Order extends Model
         'overall_progress'
     ];
 
+    protected $casts = [
+        'date' => 'date',
+        'deadline_date' => 'date',
+        'customer_id' => 'integer',
+        'branch_id' => 'integer',
+        'overall_progress' => 'integer',
+    ];
+
     public function customer()
     {
         return $this->belongsTo(Customer::class);

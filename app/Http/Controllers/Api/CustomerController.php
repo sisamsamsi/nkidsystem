@@ -9,6 +9,14 @@ use Illuminate\Support\Facades\Log;
 
 class CustomerController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            \Illuminate\Support\Facades\Gate::authorize('admin-only');
+            return $next($request);
+        });
+    }
+
     /**
      * Display a listing of customers
      */
@@ -126,6 +134,21 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
+        // Check if customer has associated orders or products
+        if ($customer->orders()->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak dapat menghapus pelanggan karena memiliki data pesanan aktif.'
+            ], 400);
+        }
+
+        if ($customer->products()->exists()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tidak dapat menghapus pelanggan karena memiliki produk terkait.'
+            ], 400);
+        }
+
         $customer->delete();
 
         return response()->json([

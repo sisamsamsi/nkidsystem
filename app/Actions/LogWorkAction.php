@@ -21,6 +21,10 @@ class LogWorkAction
      */
     public function execute(int $taskId, int $userId, int $quantity, ?string $notes = null): array
     {
+        if ($quantity <= 0) {
+            throw new \Exception("Quantity must be greater than zero");
+        }
+
         return DB::transaction(function () use ($taskId, $userId, $quantity, $notes) {
             // Lock the task row to prevent race conditions
             $task = ProductionTask::lockForUpdate()->findOrFail($taskId);

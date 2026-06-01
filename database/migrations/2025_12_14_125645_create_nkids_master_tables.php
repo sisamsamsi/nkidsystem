@@ -27,7 +27,7 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->foreignId('customer_id')->constrained('customers');
+            $table->foreignId('customer_id')->constrained('customers')->onDelete('restrict');
             $table->string('style_code')->nullable();
             $table->text('description')->nullable();
             $table->timestamps();
@@ -35,7 +35,7 @@ return new class extends Migration
 
         Schema::create('product_variants', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_id')->constrained('products');
+            $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
             $table->string('name');
             $table->text('colors'); // Comma separated
             $table->text('sizes'); // Comma separated
@@ -53,8 +53,8 @@ return new class extends Migration
 
         Schema::create('variant_processes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('product_variant_id')->constrained('product_variants');
-            $table->foreignId('process_template_id')->constrained('process_templates');
+            $table->foreignId('product_variant_id')->constrained('product_variants')->onDelete('cascade');
+            $table->foreignId('process_template_id')->constrained('process_templates')->onDelete('restrict');
             $table->integer('weight');
             $table->integer('sequence_order');
             $table->timestamps();

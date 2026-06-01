@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
-    Check, Plus, Package, Palette, X, Trash2, PlusCircle,
+    Check, Plus, Package, Palette, X, Trash2, PlusCircle, ChevronDown,
     ChevronRight, ChevronLeft, Loader2, AlertCircle, 
     Shirt, Box, Settings, ListChecks, ArrowRight,
-    Search, User, FileText, Info
+    User, FileText, Info
 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { parseColorInput } from "../../../lib/colors";
@@ -121,17 +121,59 @@ const ProductBuilder = () => {
         }
     };
 
-    // --- Handlers ---
+    // --- Step Validation & Handlers ---
     const handleNameChange = (e) => {
         const newName = e.target.value;
         setFormData(prev => ({
             ...prev,
             basicInfo: { ...prev.basicInfo, name: newName }
         }));
-        // Debounce or just call for now
-        if (newName.length >= 3) {
-            generateStyleCode(newName);
+    };
+
+    // Debounce style code generation based on product name
+    useEffect(() => {
+        if (isEditMode) return;
+        const name = formData.basicInfo.name;
+        if (!name || name.trim().length < 3) return;
+
+        const handler = setTimeout(() => {
+            generateStyleCode(name.trim());
+        }, 500); // 500ms debounce
+
+        return () => clearTimeout(handler);
+    }, [formData.basicInfo.name]);
+
+    const handleNextToStep2 = () => {
+        const { name, customer_id } = formData.basicInfo;
+        if (!name.trim()) {
+            setError("Product Name is required.");
+            return;
         }
+        if (!customer_id) {
+            setError("Please select a customer.");
+            return;
+        }
+        setError("");
+        setCurrentStep(2);
+    };
+
+    const handleNextToStep3 = () => {
+        if (formData.variants.length === 0) {
+            setError("Please add at least one variant.");
+            return;
+        }
+        setError("");
+        setCurrentStep(3);
+    };
+
+    const handleNextToStep4 = () => {
+        const invalidVariant = formData.variants.find(v => !v.processes || v.processes.length === 0);
+        if (invalidVariant) {
+            setError(`Please configure the production flow for variant "${invalidVariant.name}".`);
+            return;
+        }
+        setError("");
+        setCurrentStep(4);
     };
 
     const handleBasicInfoChange = (field, value) => {
@@ -359,7 +401,7 @@ const ProductBuilder = () => {
 
                     <div className="flex justify-end pt-4">
                         <button 
-                            onClick={() => setCurrentStep(2)}
+                            onClick={handleNextToStep2}
                             className="bg-primary hover:bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg shadow-primary/20 flex items-center gap-3 active:scale-95"
                         >
                             Configure Variants
@@ -469,7 +511,6 @@ const ProductBuilder = () => {
                         <div className="bg-white rounded-3xl border border-slate-100 shadow-xl min-h-[500px] overflow-hidden">
                             <div className="p-6 border-b border-slate-50 flex justify-between items-center px-8">
                                 <h3 className="font-bold text-slate-800">Added Variants ({formData.variants.length})</h3>
-                                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-tight italic">Drag to reorder functionality coming soon</div>
                             </div>
                             
                             <div className="overflow-x-auto">
@@ -527,7 +568,7 @@ const ProductBuilder = () => {
                             <button onClick={() => setCurrentStep(1)} className="px-8 py-4 rounded-2xl font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-3">
                                 <ChevronLeft size={20} /> Previous
                             </button>
-                            <button onClick={() => setCurrentStep(3)} className="bg-primary hover:bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-95 flex items-center gap-3">
+                            <button onClick={handleNextToStep3} className="bg-primary hover:bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-95 flex items-center gap-3">
                                 Production Flow <ChevronRight size={20} />
                             </button>
                         </div>
@@ -585,7 +626,7 @@ const ProductBuilder = () => {
                                 {isEditMode && v.id && !isNaN(Number(v.id)) ? (
                                     <div className="px-8 pb-6">
                                         <div className="border-t border-slate-100 pt-4">
-                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Assign Sub-Proses (SEWING / FINISHING)</p>
+                                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Assign Sub-Processes (SEWING / FINISHING)</p>
                                             <VariantSubProcessEditor variant={v} />
                                         </div>
                                     </div>
@@ -593,7 +634,7 @@ const ProductBuilder = () => {
                                     <div className="px-8 pb-6">
                                         <div className="border-t border-slate-100 pt-4 text-center">
                                             <p className="text-xs text-amber-600 bg-amber-50 px-4 py-2 rounded-lg inline-block">
-                                                ⚠️ Simpan produk terlebih dahulu untuk assign sub-proses ke varian ini
+                                                ⚠️ Save the product first to assign sub-processes to this variant
                                             </p>
                                         </div>
                                     </div>
@@ -606,7 +647,7 @@ const ProductBuilder = () => {
                         <button onClick={() => setCurrentStep(2)} className="px-8 py-4 rounded-2xl font-bold text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-3">
                             <ChevronLeft size={20} /> Previous
                         </button>
-                        <button onClick={() => setCurrentStep(4)} className="bg-primary hover:bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-95 flex items-center gap-3">
+                        <button onClick={handleNextToStep4} className="bg-primary hover:bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-95 flex items-center gap-3">
                             Review & Create <ChevronRight size={20} />
                         </button>
                     </div>
@@ -706,10 +747,5 @@ const ProductBuilder = () => {
         </div>
     );
 };
-
-// Help with ChevronDown missing import if not careful, often lucide icons can be forgotten
-const ChevronDown = ({ size = 20, className = "" }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m6 9 6 6 6-6"/></svg>
-);
 
 export default ProductBuilder;
