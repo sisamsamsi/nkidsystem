@@ -138,15 +138,15 @@ const EmployeeList = () => {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h2 className="text-3xl font-light text-slate-800 tracking-tight">Employees</h2>
-                    <p className="text-sm text-slate-500 mt-1 font-light">User management, roles, and division assignments</p>
+                    <h2 className="text-3xl font-light text-slate-800 tracking-tight">Kelola Akun & Karyawan</h2>
+                    <p className="text-sm text-slate-500 mt-1 font-light">Manajemen akun pengguna, level akses, dan penugasan divisi stasiun</p>
                 </div>
                 <button 
                     onClick={handleAdd}
                     className="bg-primary hover:bg-blue-600 text-white px-6 py-3 rounded-2xl flex items-center gap-2 font-black transition-all shadow-xl shadow-primary/20 active:scale-95 text-xs uppercase tracking-widest"
                 >
                     <Plus size={18} strokeWidth={3} />
-                    Add Employee
+                    Tambah Akun / Karyawan
                 </button>
             </div>
 
@@ -158,7 +158,7 @@ const EmployeeList = () => {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors" size={18} />
                         <input 
                             type="text"
-                            placeholder="Search by name, email, or division..."
+                            placeholder="Cari berdasarkan nama, email, atau divisi..."
                             className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm text-slate-700 focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all placeholder:text-slate-400 shadow-sm font-medium"
                             value={searchVal}
                             onChange={(e) => setSearchVal(e.target.value)}
@@ -171,7 +171,7 @@ const EmployeeList = () => {
                     {loading ? (
                         <div className="flex flex-col items-center justify-center h-96 gap-4">
                             <Loader2 className="animate-spin text-primary" size={40} />
-                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Loading database...</p>
+                            <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">Memuat database...</p>
                         </div>
                     ) : error ? (
                         <div className="flex flex-col items-center justify-center h-96 text-rose-500 gap-3">
@@ -183,17 +183,17 @@ const EmployeeList = () => {
                             <div className="w-16 h-16 rounded-3xl bg-slate-50 flex items-center justify-center text-slate-200">
                                 <Users size={40} />
                             </div>
-                            <p className="text-sm font-bold uppercase tracking-widest">No employees found</p>
+                            <p className="text-sm font-bold uppercase tracking-widest">Data tidak ditemukan</p>
                         </div>
                     ) : (
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="border-b border-slate-50 bg-slate-50/50">
-                                    <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Employee Profile</th>
-                                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Role / Designation</th>
-                                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Main Division</th>
-                                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Station PIN</th>
-                                    <th className="py-4 px-8 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Actions</th>
+                                    <th className="py-4 px-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">Profil Pengguna</th>
+                                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">Level Akses / Role</th>
+                                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">Divisi Utama</th>
+                                    <th className="py-4 px-6 text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">PIN Stasiun</th>
+                                    <th className="py-4 px-8 text-right text-[10px] font-black text-slate-400 uppercase tracking-widest">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-50">
@@ -236,16 +236,16 @@ const EmployeeList = () => {
                                                 <button 
                                                     onClick={() => handleEdit(emp)}
                                                     className="p-2 text-slate-400 hover:text-primary hover:bg-white hover:shadow-md rounded-xl transition-all"
-                                                    title="Edit Employee"
-                                                    aria-label={`Edit ${emp.name || 'Employee'}`}
+                                                    title="Edit Pengguna"
+                                                    aria-label={`Edit ${emp.name || 'Pengguna'}`}
                                                 >
                                                     <Pencil size={18} strokeWidth={2.5} />
                                                 </button>
                                                 <button 
                                                     onClick={() => handleDeleteClick(emp.id)}
                                                     className="p-2 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all"
-                                                    title="Delete Employee"
-                                                    aria-label={`Delete ${emp.name || 'Employee'}`}
+                                                    title="Hapus Pengguna"
+                                                    aria-label={`Hapus ${emp.name || 'Pengguna'}`}
                                                 >
                                                     <Trash2 size={18} strokeWidth={2.5} />
                                                 </button>
@@ -261,7 +261,7 @@ const EmployeeList = () => {
                 {/* Footer / Pagination */}
                 <div className="p-5 border-t border-slate-50 flex flex-col sm:flex-row justify-between items-center gap-4 bg-slate-50/10">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                        Showing <span className="text-slate-700">{employees.length}</span> of <span className="text-slate-700">{pagination.total}</span> employees
+                        Menampilkan <span className="text-slate-700">{employees.length}</span> dari <span className="text-slate-700">{pagination.total}</span> akun
                     </p>
                     <div className="flex items-center gap-1.5 bg-white p-1 rounded-2xl border border-slate-100 shadow-sm">
                         <button 
@@ -304,8 +304,8 @@ const EmployeeList = () => {
                         <div className="mx-auto w-12 h-12 bg-rose-50 text-rose-600 rounded-full flex items-center justify-center mb-4">
                             <AlertCircle size={24} />
                         </div>
-                        <h3 className="text-lg font-bold text-slate-800 mb-2">Confirm Delete</h3>
-                        <p className="text-sm text-slate-500 mb-6">Are you sure you want to delete this employee? This action is permanent and cannot be undone.</p>
+                        <h3 className="text-lg font-bold text-slate-800 mb-2">Konfirmasi Hapus</h3>
+                        <p className="text-sm text-slate-500 mb-6">Apakah Anda yakin ingin menghapus akun/karyawan ini? Tindakan ini bersifat permanen dan tidak dapat dibatalkan.</p>
                         
                         <div className="flex gap-3 justify-center">
                             <button 
@@ -313,14 +313,14 @@ const EmployeeList = () => {
                                 disabled={isDeleting}
                                 className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-bold rounded-xl transition-all disabled:opacity-50"
                             >
-                                Cancel
+                                Batal
                             </button>
                             <button 
                                 onClick={handleConfirmDelete}
                                 disabled={isDeleting}
                                 className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-rose-200 disabled:opacity-50 flex items-center gap-1.5"
                             >
-                                {isDeleting ? 'Deleting...' : 'Delete'}
+                                {isDeleting ? 'Menghapus...' : 'Hapus'}
                             </button>
                         </div>
                     </div>

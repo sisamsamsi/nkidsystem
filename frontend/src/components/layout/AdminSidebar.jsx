@@ -5,25 +5,25 @@ import { LayoutDashboard, Users, ShoppingCart, Factory, BarChart, LifeBuoy, Pack
 // Grouped Navigation Items
 const NAV_GROUPS = [
     {
-        title: 'Overview',
+        title: 'Ringkasan',
         items: [
             { icon: LayoutDashboard, label: 'Dashboard', path: '/admin/dashboard' },
         ]
     },
     {
-        title: 'Management',
+        title: 'Manajemen',
         items: [
-            { icon: ShoppingCart, label: 'Orders', path: '/admin/orders' },
-            { icon: Building2, label: 'Customers', path: '/admin/customers' },
-            { icon: Package, label: 'Products', path: '/admin/products' },
-            { icon: Users, label: 'Employees', path: '/admin/employees' },
+            { icon: ShoppingCart, label: 'Pesanan', path: '/admin/orders' },
+            { icon: Building2, label: 'Pelanggan', path: '/admin/customers' },
+            { icon: Package, label: 'Produk', path: '/admin/products' },
+            { icon: Users, label: 'Kelola Akun & Karyawan', path: '/admin/employees' },
         ]
     },
     {
-        title: 'Production',
+        title: 'Produksi',
         items: [
-            { icon: Factory, label: 'Production Board', path: '/admin/production' },
-            { icon: BarChart, label: 'Reports', path: '/admin/reports' },
+            { icon: Factory, label: 'Papan Produksi', path: '/admin/production' },
+            { icon: BarChart, label: 'Laporan', path: '/admin/reports' },
         ]
     }
 ];
@@ -74,7 +74,7 @@ const AdminSidebar = () => {
 
                 {/* Settings Section */}
                 <div className="flex flex-col gap-2">
-                    <p className="px-3 text-xs font-medium text-gray-400 uppercase tracking-widest">System</p>
+                    <p className="px-3 text-xs font-medium text-gray-400 uppercase tracking-widest">Sistem</p>
                     <NavLink
                         to="/admin/settings/sub-processes"
                         className={({ isActive }) =>
@@ -85,7 +85,7 @@ const AdminSidebar = () => {
                         }
                     >
                         <Layers size={18} strokeWidth={1.5} />
-                        <span className="text-sm">Sub-Processes</span>
+                        <span className="text-sm">Sub-Proses</span>
                     </NavLink>
                 </div>
             </nav>
@@ -96,14 +96,14 @@ const AdminSidebar = () => {
                         <div className="p-2 bg-white rounded-lg shadow-sm">
                             <LifeBuoy size={18} className="text-primary" />
                         </div>
-                        <span className="text-sm font-bold text-gray-900">Need Help?</span>
+                        <span className="text-sm font-bold text-gray-900">Butuh Bantuan?</span>
                     </div>
-                    <p className="text-xs text-gray-500 leading-relaxed mb-3">Contact support for any production issues.</p>
+                    <p className="text-xs text-gray-500 leading-relaxed mb-3">Hubungi bantuan jika terjadi kendala produksi.</p>
                     <button 
                         onClick={() => window.location.href = 'mailto:support@nkids.com'}
                         className="w-full bg-white text-gray-900 text-xs font-semibold py-2.5 rounded-xl hover:shadow-md transition-shadow cursor-pointer"
                     >
-                        Contact Support
+                        Hubungi Bantuan
                     </button>
                 </div>
             </div>

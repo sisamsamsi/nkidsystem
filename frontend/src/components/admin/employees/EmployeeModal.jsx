@@ -76,9 +76,9 @@ const EmployeeModal = ({ isOpen, onClose, employee, onSuccess }) => {
                 <header className="relative flex items-center justify-between px-8 py-5 shrink-0">
                     <div>
                         <h2 className="text-xl font-black text-slate-800 tracking-tight">
-                            {employee ? 'Edit Employee' : 'Add Employee'}
+                            {employee ? 'Edit Akun Karyawan' : 'Tambah Akun Karyawan'}
                         </h2>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Human Resource Management</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Manajemen Sumber Daya Manusia</p>
                     </div>
                     <button onClick={onClose} className="p-2.5 hover:bg-slate-50 rounded-2xl text-slate-400 transition-all hover:rotate-90">
                         <X size={20} strokeWidth={3} />
@@ -100,12 +100,12 @@ const EmployeeModal = ({ isOpen, onClose, employee, onSuccess }) => {
                                 <div className="p-1.5 bg-indigo-50 text-indigo-600 rounded-lg">
                                     <User size={12} strokeWidth={3} />
                                 </div>
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Basic Information</span>
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Informasi Dasar</span>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nama Lengkap</label>
                                     <div className="relative group">
                                         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">
                                             <User size={16} strokeWidth={2.5} />
@@ -116,13 +116,13 @@ const EmployeeModal = ({ isOpen, onClose, employee, onSuccess }) => {
                                             value={formData.name}
                                             onChange={(e) => setFormData({...formData, name: e.target.value})}
                                             className="w-full h-11 pl-11 pr-4 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none font-bold text-slate-700 text-sm"
-                                            placeholder="Full Name..."
+                                            placeholder="Nama Lengkap Karyawan..."
                                         />
                                     </div>
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Employee Email</label>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Email Pengguna</label>
                                     <div className="relative group">
                                         <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-primary transition-colors">
                                             <Mail size={16} strokeWidth={2.5} />
@@ -133,7 +133,7 @@ const EmployeeModal = ({ isOpen, onClose, employee, onSuccess }) => {
                                             value={formData.email}
                                             onChange={(e) => setFormData({...formData, email: e.target.value})}
                                             className="w-full h-11 pl-11 pr-4 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none font-bold text-slate-700 text-sm"
-                                            placeholder="email@example.com"
+                                            placeholder="email@contoh.com"
                                         />
                                     </div>
                                 </div>
@@ -146,12 +146,12 @@ const EmployeeModal = ({ isOpen, onClose, employee, onSuccess }) => {
                                 <div className="p-1.5 bg-amber-50 text-amber-600 rounded-lg">
                                     <Briefcase size={12} strokeWidth={3} />
                                 </div>
-                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Assignment & Security</span>
+                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Penugasan & Keamanan</span>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-1.5 text-left">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Access Level (Role)</label>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Tingkat Akses (Role)</label>
                                     <div className="relative">
                                         <select 
                                             value={formData.role}
@@ -169,13 +169,13 @@ const EmployeeModal = ({ isOpen, onClose, employee, onSuccess }) => {
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Main Division</label>
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Divisi Utama</label>
                                     <input 
                                         type="text"
                                         value={formData.division}
                                         onChange={(e) => setFormData({...formData, division: e.target.value})}
                                         className="w-full h-11 px-4 bg-slate-50 border border-slate-100 rounded-xl focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all outline-none font-bold text-slate-700 text-sm"
-                                        placeholder="Sewing, Cutting..."
+                                        placeholder="Sewing, Cutting, Sablon..."
                                     />
                                 </div>
 
@@ -183,7 +183,7 @@ const EmployeeModal = ({ isOpen, onClose, employee, onSuccess }) => {
                                     <div className="md:col-span-2 space-y-1.5 animate-in slide-in-from-right-4 duration-300">
                                         <label className="text-[10px] font-black text-rose-500 uppercase tracking-widest ml-1 flex items-center gap-1.5">
                                             <Lock size={10} strokeWidth={3} />
-                                            New Password {employee && "(Optional)"}
+                                            Password Baru {employee && "(Opsional)"}
                                         </label>
                                         <input 
                                             type="password"
@@ -206,8 +206,8 @@ const EmployeeModal = ({ isOpen, onClose, employee, onSuccess }) => {
                                         <Shield size={18} strokeWidth={2.5} />
                                     </div>
                                     <div>
-                                        <p className="text-sm font-black text-slate-800 tracking-tight">Login Station Device</p>
-                                        <p className="text-[9px] font-bold text-indigo-500/80 uppercase tracking-widest mt-0.5">Workstation terminal access</p>
+                                        <p className="text-sm font-black text-slate-800 tracking-tight">Login Perangkat Stasiun</p>
+                                        <p className="text-[9px] font-bold text-indigo-500/80 uppercase tracking-widest mt-0.5">Akses terminal stasiun kerja</p>
                                     </div>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
@@ -228,9 +228,9 @@ const EmployeeModal = ({ isOpen, onClose, employee, onSuccess }) => {
                                         <div className="space-y-0.5">
                                             <label className="text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-2">
                                                 <Key size={10} strokeWidth={3} />
-                                                6-Digit PIN
+                                                PIN 6 Digit
                                             </label>
-                                            <p className="text-[9px] text-slate-400 font-medium">Workstation login PIN.</p>
+                                            <p className="text-[9px] text-slate-400 font-medium">PIN untuk masuk di stasiun kerja.</p>
                                         </div>
                                         <input 
                                             type="text"
@@ -253,7 +253,7 @@ const EmployeeModal = ({ isOpen, onClose, employee, onSuccess }) => {
                             onClick={onClose}
                             className="flex-1 h-11 rounded-xl font-black text-[10px] text-slate-400 uppercase tracking-widest border border-slate-100 hover:bg-white hover:shadow-sm transition-all active:scale-95"
                         >
-                            Cancel
+                            Batal
                         </button>
                         <button 
                             type="submit"
@@ -261,7 +261,7 @@ const EmployeeModal = ({ isOpen, onClose, employee, onSuccess }) => {
                             className="flex-[2] h-11 bg-indigo-600 hover:bg-primary text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-3 shadow-xl shadow-indigo-200 active:scale-95 transition-all disabled:bg-slate-300"
                         >
                             {loading ? <Loader2 className="animate-spin" size={16} strokeWidth={3} /> : <Save size={16} strokeWidth={3} />}
-                            {employee ? 'Save' : 'Add Employee'}
+                            {employee ? 'Simpan' : 'Tambah Akun'}
                         </button>
                     </div>
                 </form>
