@@ -23,6 +23,7 @@ const StationLogin = () => {
     const [error, setError] = useState("");
     const [stations, setStations] = useState([]);
     const [loadingStations, setLoadingStations] = useState(true);
+    const [stationFetchError, setStationFetchError] = useState("");
 
     // Icon mapping for station types
     const getStationIcon = (name) => {
@@ -41,33 +42,29 @@ const StationLogin = () => {
     }, [navigate]);
 
     // Fetch stations from API
-    useEffect(() => {
-        const fetchStations = async () => {
-            try {
-                const response = await stationService.getStations();
-                const stationData = response.data.data || response.data;
-                setStations(stationData.map(s => ({
-                    ...s,
-                    icon: getStationIcon(s.name)
-                })));
-                if (stationData.length > 0) {
-                    setSelectedStation(stationData[0].id);
-                }
-            } catch (err) {
-                // Fallback to mock data if API not available
-                const mockStations = [
-                    { id: 1, name: "Cutting Line A", code: "104", icon: Scissors },
-                    { id: 2, name: "Sewing Line 1", code: "201", icon: Shirt },
-                    { id: 3, name: "Finishing A", code: "305", icon: RefreshCw },
-                    { id: 4, name: "Packing B", code: "410", icon: Package },
-                ];
-                setStations(mockStations);
-                setSelectedStation(1);
-            } finally {
-                setLoadingStations(false);
+    const loadStations = async () => {
+        setLoadingStations(true);
+        setStationFetchError("");
+        try {
+            const response = await stationService.getStations();
+            const stationData = response.data.data || response.data;
+            setStations(stationData.map(s => ({
+                ...s,
+                icon: getStationIcon(s.name)
+            })));
+            if (stationData.length > 0) {
+                setSelectedStation(stationData[0].id);
             }
-        };
-        fetchStations();
+        } catch (err) {
+            setStations([]);
+            setStationFetchError("Server tidak tersedia. Silakan hubungi administrator.");
+        } finally {
+            setLoadingStations(false);
+        }
+    };
+
+    useEffect(() => {
+        loadStations();
     }, []);
 
     const handleNumpadClick = (num) => {
@@ -169,6 +166,28 @@ const StationLogin = () => {
                                 <div className="col-span-full flex flex-col items-center justify-center py-12 text-slate-400 gap-2">
                                     <Loader2 className="animate-spin text-primary" size={28} />
                                     <span className="text-xs font-black uppercase tracking-widest">Loading Workstations...</span>
+                                </div>
+                            ) : stationFetchError ? (
+                                <div className="col-span-full flex flex-col items-center justify-center py-8 px-6 bg-red-50 dark:bg-red-950/10 border border-red-100 dark:border-red-900/20 rounded-[2rem] text-center gap-4 animate-in fade-in duration-500">
+                                    <div className="p-3 bg-red-100 dark:bg-red-900/20 text-red-600 rounded-2xl">
+                                        <ShieldAlert size={28} strokeWidth={2.5} />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-sm font-black uppercase tracking-wider text-red-600">Koneksi Gagal</p>
+                                        <p className="text-xs font-medium text-slate-500 max-w-md">{stationFetchError}</p>
+                                    </div>
+                                    <button
+                                        onClick={loadStations}
+                                        className="px-6 py-2 bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white font-black text-[10px] uppercase tracking-widest rounded-xl transition-all flex items-center gap-2"
+                                    >
+                                        <RefreshCw size={12} strokeWidth={3} />
+                                        Coba Lagi
+                                    </button>
+                                </div>
+                            ) : stations.length === 0 ? (
+                                <div className="col-span-full flex flex-col items-center justify-center py-12 text-slate-400 gap-2">
+                                    <AlertCircle size={28} strokeWidth={2.5} />
+                                    <span className="text-xs font-black uppercase tracking-widest">Tidak ada workstation terdaftar</span>
                                 </div>
                             ) : (
                                 stations.map((station) => {

@@ -288,15 +288,18 @@ const StationDashboard = () => {
                         {/* Compact Stats */}
                         <div className="hidden md:flex items-center gap-8 mr-8">
                             <div className="text-right">
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Shift Progress</p>
-                                <p className="text-sm font-black text-slate-700">{shiftProgressPercent}% Complete</p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Progres Shift</p>
+                                <p className="text-sm font-black text-slate-700">{shiftProgressPercent}% Selesai</p>
                             </div>
                             <div className="w-px h-8 bg-slate-100" />
                         </div>
 
-                        <button className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 text-slate-400 flex items-center justify-center transition-all hover:bg-slate-100 hover:text-slate-600 relative">
+                        <button 
+                            disabled 
+                            title="Fitur notifikasi segera hadir" 
+                            className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 text-slate-300 flex items-center justify-center cursor-not-allowed opacity-60 relative"
+                        >
                             <Bell size={20} strokeWidth={2.5} />
-                            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 border-2 border-white rounded-full"></span>
                         </button>
                         
                         <button 
@@ -304,7 +307,7 @@ const StationDashboard = () => {
                             className="h-10 px-4 rounded-xl bg-rose-50 text-rose-600 text-[11px] font-black uppercase tracking-widest border border-rose-100 flex items-center gap-2 transition-all hover:bg-rose-600 hover:text-white hover:border-rose-600"
                         >
                             <LogOut size={16} strokeWidth={2.5} />
-                            Logout
+                            Keluar
                         </button>
                     </div>
                 </div>
@@ -358,7 +361,7 @@ const StationDashboard = () => {
                         className="px-4 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest bg-white border border-slate-100 text-slate-400 hover:text-slate-600 hover:border-slate-200 transition-all flex items-center gap-2 shadow-sm"
                     >
                         <RefreshCw size={14} strokeWidth={2.5} className={loading ? 'animate-spin text-primary' : ''} />
-                        Refresh
+                        Perbarui
                     </button>
                 </div>
             </div>
@@ -376,7 +379,7 @@ const StationDashboard = () => {
                                 onClick={fetchTasks}
                                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl active:scale-95 transition-all outline-none"
                             >
-                                Retry
+                                Coba Lagi
                             </button>
                         </div>
                     )}
@@ -412,14 +415,14 @@ const StationDashboard = () => {
                                                 </th>
                                             )}
                                             <th className="py-4 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider w-[70px]">
-                                                Img
+                                                Foto
                                             </th>
                                             <th
                                                 onClick={() => handleSort('po_number')}
                                                 className="py-4 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer group hover:text-primary transition-colors"
                                             >
                                                 <div className="flex items-center">
-                                                    PO Number
+                                                    No. PO
                                                     <SortIcon field="po_number" />
                                                 </div>
                                             </th>
@@ -428,7 +431,7 @@ const StationDashboard = () => {
                                                 className="py-4 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer group hover:text-primary transition-colors"
                                             >
                                                 <div className="flex items-center">
-                                                    Variant
+                                                    Varian
                                                     <SortIcon field="product" />
                                                 </div>
                                             </th>
@@ -437,19 +440,19 @@ const StationDashboard = () => {
                                                 className="py-4 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer group hover:text-primary transition-colors"
                                             >
                                                 <div className="flex items-center">
-                                                    Station
+                                                    Stasiun
                                                     <SortIcon field="process" />
                                                 </div>
                                             </th>
                                             <th className="py-4 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                                                Colorblock
+                                                Warna/Ukuran
                                             </th>
                                             <th
                                                 onClick={() => handleSort('progress')}
                                                 className="py-4 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer group hover:text-primary transition-colors"
                                             >
                                                 <div className="flex items-center">
-                                                    Progress
+                                                    Progres
                                                     <SortIcon field="progress" />
                                                 </div>
                                             </th>
@@ -458,12 +461,12 @@ const StationDashboard = () => {
                                                 className="py-4 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider cursor-pointer group hover:text-primary transition-colors"
                                             >
                                                 <div className="flex items-center">
-                                                    Priority
+                                                    Prioritas
                                                     <SortIcon field="priority" />
                                                 </div>
                                             </th>
                                             <th className="py-4 px-4 text-xs font-semibold text-slate-400 uppercase tracking-wider text-right">
-                                                Actions
+                                                Aksi
                                             </th>
                                         </tr>
                                     </thead>
@@ -565,7 +568,7 @@ const StationDashboard = () => {
                                                             "px-2.5 py-1 text-[10px] font-black uppercase tracking-widest rounded-lg border",
                                                             getPriorityBadge(task.priority)
                                                         )}>
-                                                            {task.priority}
+                                                            {task.priority === 'urgent' ? 'URGENT' : task.priority === 'high' ? 'TINGGI' : task.priority === 'normal' ? 'NORMAL' : 'RENDAH'}
                                                         </span>
                                                     </td>
                                                     
@@ -577,7 +580,7 @@ const StationDashboard = () => {
                                                                 <button 
                                                                     onClick={(e) => handleQCClick(e, task)}
                                                                     className="w-9 h-9 rounded-xl bg-emerald-500 text-white hover:bg-emerald-600 transition-all flex items-center justify-center shadow-lg shadow-emerald-200"
-                                                                    title="QC Inspection"
+                                                                    title="Inspeksi QC"
                                                                 >
                                                                     <ClipboardCheck size={16} strokeWidth={2.5} />
                                                                 </button>
@@ -587,7 +590,7 @@ const StationDashboard = () => {
                                                                 <button 
                                                                     onClick={(e) => { e.stopPropagation(); handleTaskClick(task); }}
                                                                     className="w-9 h-9 rounded-xl bg-slate-900 text-white hover:bg-primary transition-all flex items-center justify-center shadow-lg shadow-slate-200"
-                                                                    title="Log Work"
+                                                                    title="Log Kerja"
                                                                 >
                                                                     <ChevronRight size={18} strokeWidth={3} />
                                                                 </button>
@@ -608,7 +611,7 @@ const StationDashboard = () => {
                                 </p>
                                 <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
                                     <Clock size={14} />
-                                    Last updated: <span className="text-slate-600">{loading ? 'Updating...' : new Date().toLocaleTimeString()}</span>
+                                    Terakhir diperbarui: <span className="text-slate-600">{loading ? 'Memperbarui...' : new Date().toLocaleTimeString()}</span>
                                 </div>
                             </div>
                         </div>

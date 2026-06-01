@@ -1,0 +1,1 @@
+import{b as t}from"./index-CeF1Dy12.js";const n={getAll:async(e={})=>(await t.get("/customers",{params:e})).data,getById:async e=>(await t.get(`/customers/${e}`)).data,create:async e=>(await t.post("/customers",e)).data,update:async(e,s)=>(await t.put(`/customers/${e}`,s)).data,delete:async e=>(await t.delete(`/customers/${e}`)).data};export{n as c};
