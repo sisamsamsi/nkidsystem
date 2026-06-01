@@ -95,7 +95,7 @@ class ReportController extends Controller
         ->values();
 
         // Calculate summary stats
-        $totalEmployees = \App\Models\User::count();
+        $totalEmployees = \App\Models\User::where('role', 'operator')->count();
         
         $summary = [
             'total_employees' => $totalEmployees,

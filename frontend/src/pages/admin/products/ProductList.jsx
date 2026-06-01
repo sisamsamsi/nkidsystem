@@ -33,6 +33,16 @@ const ProductList = () => {
         return () => clearTimeout(handler);
     }, [searchTerm]);
 
+    // Auto-dismiss error effect
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => {
+                setError('');
+            }, 4000);
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
+
     const fetchProducts = useCallback(async (page = 1) => {
         setLoading(true);
         setError('');

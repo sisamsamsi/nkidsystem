@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import WorkLogModal from '../../components/station/WorkLogModal';
 import QCLogModal from '../../components/station/QCLogModal';
 import { stationService } from '../../services/stationService';
+import ImageWithFallback from '../../components/common/ImageWithFallback';
 
 const getColorCode = (colorName) => {
     if (!colorName) return '#6b7280';
@@ -52,8 +53,8 @@ const StationDashboard = () => {
     const station = stationService.getStoredStation();
     
     // Detect if current station is QC
-    const isQCStation = station?.name?.toLowerCase().includes('qc') || 
-                        station?.name?.toLowerCase().includes('quality');
+    const isQCStation = station?.role === 'qc' || 
+                        station?.division?.toLowerCase() === 'qc';
 
     // Fetch tasks from API
     const fetchTasks = useCallback(async () => {
@@ -94,32 +95,8 @@ const StationDashboard = () => {
             setError('');
         } catch (err) {
             console.error('Error fetching tasks:', err);
-            setError('Gagal memuat data dari server. Menampilkan data contoh.');
-            // Fallback to mock data if API fails
-            setTasks([
-                {
-                    id: 1,
-                    poDisplay: '#8821-AW',
-                    productName: 'Triloka',
-                    variantName: 'Mega',
-                    colorblock: { name: 'Navy Blue, Cream', colorCode: '#1e3a8a', size: '4T' },
-                    priority: 'urgent',
-                    completed: 50,
-                    total: 500,
-                    status: 'in_progress'
-                },
-                {
-                    id: 2,
-                    poDisplay: '#8824-SS',
-                    productName: 'Simfoni',
-                    variantName: 'Nusa',
-                    colorblock: { name: 'Heather Grey, Black', colorCode: '#9ca3af', size: '6' },
-                    priority: 'high',
-                    completed: 120,
-                    total: 200,
-                    status: 'in_progress'
-                },
-            ]);
+            setError('Failed to load tasks from server. Please try again.');
+            setTasks([]);
         } finally {
             setLoading(false);
         }
@@ -390,9 +367,17 @@ const StationDashboard = () => {
             <main className="flex-1 p-8 overflow-y-auto">
                 <div className="max-w-[1600px] mx-auto">
                     {error && (
-                        <div className="mb-6 p-4 bg-amber-50 border-2 border-amber-100 rounded-2xl flex items-center gap-3 text-amber-700 text-[11px] font-black uppercase tracking-widest">
-                            <AlertCircle size={18} strokeWidth={3} />
-                            {error}
+                        <div className="mb-6 p-4 bg-red-50 dark:bg-red-950/20 border-2 border-red-100 dark:border-red-900/30 rounded-2xl flex items-center justify-between gap-3 text-red-700 dark:text-red-400 text-[11px] font-black uppercase tracking-widest">
+                            <div className="flex items-center gap-3">
+                                <AlertCircle size={18} strokeWidth={3} />
+                                <span>{error}</span>
+                            </div>
+                            <button 
+                                onClick={fetchTasks}
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-xl active:scale-95 transition-all outline-none"
+                            >
+                                Retry
+                            </button>
                         </div>
                     )}
 
@@ -512,19 +497,12 @@ const StationDashboard = () => {
                                                     {/* Product Image */}
                                                     <td className="py-4 px-4">
                                                         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 border border-slate-100 flex items-center justify-center text-slate-300 overflow-hidden">
-                                                            {task.imageUrl ? (
-                                                                <img 
-                                                                    src={task.imageUrl} 
-                                                                    alt={task.variantName}
-                                                                    className="w-full h-full object-cover"
-                                                                    onError={(e) => {
-                                                                        e.target.style.display = 'none';
-                                                                        e.target.parentNode.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-image-off text-slate-300"><line x1="2" x2="22" y1="2" y2="22"/><path d="M10.41 10.41a2 2 0 1 1-2.83-2.83"/><path d="M13.5 21H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h15a2 2 0 0 1 2 2v9.5"/><path d="m10 14 5.07-5.07a1.41 1.41 0 0 1 2 0l3.93 3.93"/></svg>';
-                                                                    }}
-                                                                />
-                                                            ) : (
-                                                                <Image size={20} strokeWidth={1.5} />
-                                                            )}
+                                                            <ImageWithFallback 
+                                                                src={task.imageUrl} 
+                                                                alt={task.variantName}
+                                                                className="w-full h-full object-cover"
+                                                                fallback={<Image size={20} strokeWidth={1.5} />}
+                                                            />
                                                         </div>
                                                     </td>
                                                     

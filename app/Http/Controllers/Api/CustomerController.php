@@ -35,6 +35,9 @@ class CustomerController extends Controller
         }
 
         $perPage = (int) $request->get('per_page', 15);
+        if ($perPage < 1) {
+            $perPage = 15;
+        }
         if ($perPage > 100) {
             $perPage = 100;
         }
@@ -61,13 +64,18 @@ class CustomerController extends Controller
             'address' => 'nullable|string',
         ]);
 
-        // Log incoming payload for debugging/audit
-        Log::info('API: Creating customer', ['payload' => $validated, 'user_id' => $request->user()?->id]);
+        // Log incoming payload with masked PII for safety (S6)
+        $logPayload = $validated;
+        if (isset($logPayload['email'])) $logPayload['email'] = '***@***';
+        if (isset($logPayload['phone'])) $logPayload['phone'] = '******';
+        if (isset($logPayload['address'])) $logPayload['address'] = '******';
+
+        Log::info('API: Creating customer', ['payload' => $logPayload, 'user_id' => $request->user()?->id]);
 
         try {
             $customer = Customer::create($validated);
 
-            Log::info('API: Customer created', ['id' => $customer->id, 'customer' => $customer->toArray(), 'user_id' => $request->user()?->id]);
+            Log::info('API: Customer created', ['id' => $customer->id, 'user_id' => $request->user()?->id]);
 
             return response()->json([
                 'success' => true,
@@ -75,7 +83,15 @@ class CustomerController extends Controller
                 'data' => $customer,
             ], 201);
         } catch (\Throwable $e) {
-            Log::error('API: Failed to create customer', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString(), 'payload' => $validated, 'user_id' => $request->user()?->id]);
+            $errorPayload = [
+                'error' => $e->getMessage(),
+                'user_id' => $request->user()?->id,
+            ];
+            if (config('app.debug')) {
+                $errorPayload['trace'] = $e->getTraceAsString();
+                $errorPayload['payload'] = $logPayload;
+            }
+            Log::error('API: Failed to create customer', $errorPayload);
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menyimpan customer'
@@ -108,12 +124,18 @@ class CustomerController extends Controller
             'address' => 'nullable|string',
         ]);
 
-        Log::info('API: Updating customer', ['id' => $customer->id, 'payload' => $validated, 'user_id' => $request->user()?->id]);
+        // Log incoming payload with masked PII for safety (S6)
+        $logPayload = $validated;
+        if (isset($logPayload['email'])) $logPayload['email'] = '***@***';
+        if (isset($logPayload['phone'])) $logPayload['phone'] = '******';
+        if (isset($logPayload['address'])) $logPayload['address'] = '******';
+
+        Log::info('API: Updating customer', ['id' => $customer->id, 'payload' => $logPayload, 'user_id' => $request->user()?->id]);
 
         try {
             $customer->update($validated);
 
-            Log::info('API: Customer updated', ['id' => $customer->id, 'customer' => $customer->toArray(), 'user_id' => $request->user()?->id]);
+            Log::info('API: Customer updated', ['id' => $customer->id, 'user_id' => $request->user()?->id]);
 
             return response()->json([
                 'success' => true,
@@ -121,10 +143,19 @@ class CustomerController extends Controller
                 'data' => $customer,
             ]);
         } catch (\Throwable $e) {
-            Log::error('API: Failed to update customer', ['id' => $customer->id, 'error' => $e->getMessage(), 'trace' => $e->getTraceAsString(), 'payload' => $validated, 'user_id' => $request->user()?->id]);
+            $errorPayload = [
+                'id' => $customer->id,
+                'error' => $e->getMessage(),
+                'user_id' => $request->user()?->id,
+            ];
+            if (config('app.debug')) {
+                $errorPayload['trace'] = $e->getTraceAsString();
+                $errorPayload['payload'] = $logPayload;
+            }
+            Log::error('API: Failed to update customer', $errorPayload);
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal memperbarui customer'
+                'message' => 'Failed to update customer'
             ], 500);
         }
     }
@@ -138,14 +169,14 @@ class CustomerController extends Controller
         if ($customer->orders()->exists()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tidak dapat menghapus pelanggan karena memiliki data pesanan aktif.'
+                'message' => 'Cannot delete customer because they have active orders associated.'
             ], 400);
         }
 
         if ($customer->products()->exists()) {
             return response()->json([
                 'success' => false,
-                'message' => 'Tidak dapat menghapus pelanggan karena memiliki produk terkait.'
+                'message' => 'Cannot delete customer because they have associated products.'
             ], 400);
         }
 

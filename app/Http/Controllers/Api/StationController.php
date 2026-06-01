@@ -63,7 +63,14 @@ class StationController extends Controller
 
         return response()->json([
             'success' => true,
-            'station' => $station,
+            'station' => [
+                'id' => $station->id,
+                'name' => $station->name,
+                'email' => $station->email,
+                'role' => $station->role,
+                'is_station' => $station->is_station,
+                'division' => $station->division,
+            ],
             'token' => $token,
         ]);
     }
@@ -120,11 +127,23 @@ class StationController extends Controller
      */
     public function showTask($id)
     {
+        $user = auth()->user();
         $task = ProductionTask::with([
             'orderItem.order',
             'orderItem.variant.product',
             'processTemplate',
         ])->findOrFail($id);
+
+        if ($user && $user->division && strtolower($user->division) !== 'admin') {
+            $division = strtolower($user->division);
+            $taskDivision = strtolower($task->processTemplate->name ?? '');
+            if ($division !== $taskDivision) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Stasiun Anda ({$user->division}) tidak berwenang untuk mengakses tugas divisi " . ($task->processTemplate->name ?? 'unknown') . ".",
+                ], 403);
+            }
+        }
 
         $remaining = $task->orderItem->quantity - $task->completed_quantity;
 
@@ -138,7 +157,7 @@ class StationController extends Controller
     /**
      * Log work from station (with operator PIN verification)
      */
-    public function logWork(Request $request, $id)
+    public function logWork(Request $request, $id, \App\Actions\LogWorkAction $action)
     {
         $validated = $request->validate([
             'operator_id' => 'required|exists:users,id',
@@ -147,61 +166,63 @@ class StationController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        // Verify operator PIN
+        // Verify operator PIN — null guard critical
         $operator = User::find($validated['operator_id']);
-        if (!Hash::check($validated['pin_code'], $operator->pin_code)) {
+        if (!$operator) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Operator not found.',
+            ], 404);
+        }
+        if (!$operator->pin_code || !Hash::check($validated['pin_code'], $operator->pin_code)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid operator PIN',
             ], 401);
         }
 
-        // Atomic work logging
-        $result = DB::transaction(function () use ($id, $validated, $operator) {
-            $task = ProductionTask::lockForUpdate()->findOrFail($id);
-            $orderItem = $task->orderItem;
-
-            $totalRequired = $orderItem->quantity;
-            $remaining = $totalRequired - $task->completed_quantity;
-
-            if ($validated['quantity'] > $remaining) {
-                throw new \Exception("Cannot exceed remaining quantity ({$remaining} pcs)");
+        // Verify station division access (S2)
+        $user = auth()->user();
+        $task = ProductionTask::with('processTemplate')->findOrFail($id);
+        if ($user && $user->division && strtolower($user->division) !== 'admin') {
+            $division = strtolower($user->division);
+            $taskDivision = strtolower($task->processTemplate->name ?? '');
+            if ($division !== $taskDivision) {
+                return response()->json([
+                    'success' => false,
+                    'message' => "Stasiun Anda ({$user->division}) tidak berwenang untuk mengakses tugas divisi " . ($task->processTemplate->name ?? 'unknown') . ".",
+                ], 403);
             }
+        }
 
-            // Create work log
-            $workLog = WorkLog::create([
-                'production_task_id' => $task->id,
-                'user_id' => $operator->id,
-                'quantity' => $validated['quantity'],
-                'notes' => $validated['notes'] ?? null,
+        // Atomic work logging with proper exception handling via LogWorkAction (B2)
+        try {
+            $result = $action->execute(
+                $id,
+                $operator->id,
+                $validated['quantity'],
+                $validated['notes'] ?? null
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Work logged successfully',
+                'data' => [
+                    'work_log' => $result['work_log'],
+                    'task' => $result['task'],
+                    'operator' => $operator->name,
+                ],
             ]);
-
-            // Update snapshot
-            $newCompleted = $task->completed_quantity + $validated['quantity'];
-            $task->completed_quantity = $newCompleted;
-            $task->progress_percent = round(($newCompleted / $totalRequired) * 100);
-            
-            if ($task->progress_percent >= 100) {
-                $task->status = 'completed';
-                $task->end_date = now();
-            } elseif ($task->status === 'pending') {
-                $task->status = 'in_progress';
-                $task->start_date = $task->start_date ?? now();
-            }
-            
-            $task->save();
-
-            return [
-                'work_log' => $workLog,
-                'task' => $task->fresh(),
-                'operator' => $operator->name,
-            ];
-        });
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Work logged successfully',
-            'data' => $result,
-        ]);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Task not found.',
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 }

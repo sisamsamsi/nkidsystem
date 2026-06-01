@@ -15,7 +15,7 @@ class UserController extends Controller
         $this->middleware(function ($request, $next) {
             \Illuminate\Support\Facades\Gate::authorize('admin-only');
             return $next($request);
-        })->only(['store', 'update', 'destroy']);
+        })->only(['index', 'store', 'update', 'destroy', 'show']);
     }
 
     /**
@@ -43,7 +43,7 @@ class UserController extends Controller
 
         // Return flat list if paginate=false is requested or if role=operator is requested (like in stasiun dropdown)
         if ($request->get('paginate') === 'false' || $request->get('role') === 'operator') {
-            $users = $query->latest()->get();
+            $users = $query->latest()->limit(500)->get(); // Limit to prevent large payloads
             return response()->json([
                 'success' => true,
                 'data' => $users
@@ -120,27 +120,26 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'sometimes|required|string|max:255',
             'email' => ['nullable', 'email', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:8',
             'pin_code' => 'nullable|string|size:6',
-            'role' => 'required|string|in:admin,operator,qc',
+            'role' => 'sometimes|required|string|in:admin,operator,qc',
             'division' => 'nullable|string',
             'is_station' => 'boolean',
         ]);
 
-        $userData = [
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'role' => $validated['role'],
-            'division' => $validated['division'] ?? null,
-            'is_station' => $validated['is_station'] ?? false,
-        ];
+        $userData = [];
+        if (isset($validated['name'])) $userData['name'] = $validated['name'];
+        if (isset($validated['email'])) $userData['email'] = $validated['email'];
+        if (isset($validated['role'])) $userData['role'] = $validated['role'];
+        if (array_key_exists('division', $validated)) $userData['division'] = $validated['division'];
+        if (isset($validated['is_station'])) {
+            $userData['is_station'] = $validated['is_station'];
+        }
 
         if ($request->has('pin_code')) {
             $userData['pin_code'] = !empty($validated['pin_code']) ? Hash::make($validated['pin_code']) : null;
-        } else {
-            $userData['pin_code'] = $user->pin_code;
         }
 
         if (!empty($validated['password'])) {

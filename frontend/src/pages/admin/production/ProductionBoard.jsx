@@ -407,10 +407,10 @@ const ProductionBoard = () => {
                                         <td className="px-6 py-5 text-right">
                                             <div className="flex flex-col items-end">
                                                 <span className="text-[11px] font-bold text-slate-600">
-                                                    {new Date(task.updated_at).toLocaleDateString()}
+                                                    {task.updated_at ? new Date(task.updated_at).toLocaleDateString() : '-'}
                                                 </span>
                                                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-                                                    {new Date(task.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                                    {task.updated_at ? new Date(task.updated_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                                                 </span>
                                             </div>
                                         </td>

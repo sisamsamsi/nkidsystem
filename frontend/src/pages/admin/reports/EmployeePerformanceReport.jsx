@@ -56,7 +56,16 @@ const EmployeePerformanceReport = () => {
     const handleExportPDF = () => {
         if (employees.length === 0) return;
         
+        // Guard against popup blockers
         const printWindow = window.open('', '_blank');
+        if (!printWindow) {
+            alert('Please allow popups to export PDF.');
+            return;
+        }
+
+        // HTML escape helper to prevent XSS
+        const esc = (str) => String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        
         const content = `
             <html>
             <head>
@@ -72,7 +81,7 @@ const EmployeePerformanceReport = () => {
                 </style>
             </head>
             <body>
-                <h1>Employee Performance Report</h1>
+                <h1>NKids Production — Employee Performance Report</h1>
                 <p>Generated on: ${new Date().toLocaleDateString()}</p>
                 <table>
                     <thead>
@@ -88,19 +97,19 @@ const EmployeePerformanceReport = () => {
                     <tbody>
                         ${employees.map(emp => `
                             <tr>
-                                <td>#${emp.user_id}</td>
-                                <td><strong>${emp.user_name}</strong></td>
-                                <td>${emp.role || 'Operator'}</td>
-                                <td class="text-right">${emp.total_quantity?.toLocaleString() || 0} pcs</td>
-                                <td class="text-right">${emp.task_count || 0}</td>
-                                <td class="text-right">${emp.avg_per_day || 0}</td>
+                                <td>#${esc(emp.user_id)}</td>
+                                <td><strong>${esc(emp.user_name)}</strong></td>
+                                <td>${esc(emp.role || 'Operator')}</td>
+                                <td class="text-right">${esc(emp.total_quantity?.toLocaleString() || 0)} pcs</td>
+                                <td class="text-right">${esc(emp.task_count || 0)}</td>
+                                <td class="text-right">${esc(emp.avg_per_day || 0)}</td>
                             </tr>
                         `).join('')}
                     </tbody>
                 </table>
                 <script>
                     window.onload = function() { window.print(); window.close(); }
-                </script>
+                <\/script>
             </body>
             </html>
         `;
@@ -121,7 +130,8 @@ const EmployeePerformanceReport = () => {
                 end_date: endDate
             });
             
-            if (response.success) {
+            // reportService already returns response.data, so response is the API data object directly
+            if (response && (response.success !== false)) {
                 setEmployees(response.data || []);
                 setSummary(response.summary || {
                     total_employees: 0,

@@ -109,6 +109,7 @@ const CustomerTrackingCard = () => {
 };
 
 export default function LandingPage() {
+  const [showStatus, setShowStatus] = useState(false);
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 text-slate-900 dark:text-white font-display flex flex-col items-center justify-center py-8 px-4">
       {/* Background Pattern */}
@@ -160,7 +161,10 @@ export default function LandingPage() {
             </a>
             <span className="hidden md:block w-1 h-1 bg-slate-300 dark:bg-slate-700 rounded-full"></span>
             <button 
-              onClick={() => alert("🛰️ System Status: All systems fully operational. Latency 14ms.")}
+              onClick={() => {
+                setShowStatus(true);
+                setTimeout(() => setShowStatus(false), 4000);
+              }}
               className="hover:text-slate-700 dark:hover:text-slate-200 transition-colors flex items-center gap-1 cursor-pointer bg-transparent border-none p-0 outline-none"
             >
               <span className="text-[14px]">🛰️</span>
@@ -169,6 +173,15 @@ export default function LandingPage() {
           </div>
           <p className="mt-3 text-xs text-slate-400 dark:text-slate-600">© {new Date().getFullYear()} NKids Integrated Systems. All rights reserved.</p>
         </footer>
+
+        {showStatus && (
+          <div className="fixed bottom-6 right-6 z-50 animate-in fade-in slide-in-from-bottom-5 duration-300">
+            <div className="flex items-center gap-3 bg-slate-900/90 dark:bg-slate-800/90 text-white backdrop-blur-md px-4 py-3 rounded-2xl border border-white/10 shadow-2xl">
+              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-ping" />
+              <span className="text-xs font-bold tracking-tight">System Status: All systems fully operational. Latency 14ms.</span>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

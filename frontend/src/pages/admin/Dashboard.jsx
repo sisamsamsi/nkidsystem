@@ -44,14 +44,7 @@ const Dashboard = () => {
                     const pipelineRes = await reportService.getProductionSummary();
                     setPipeline(pipelineRes.data || pipelineRes || []);
                 } catch {
-                    // Use mock pipeline if API not available
-                    setPipeline([
-                        { label: 'Cutting', val: 45 },
-                        { label: 'Sablon', val: 82 },
-                        { label: 'Sewing', val: 64 },
-                        { label: 'Finishing', val: 30 },
-                        { label: 'Packing', val: 15 },
-                    ]);
+                    setPipeline([]);
                 }
             } catch (err) {
                 console.error('Failed to fetch dashboard data', err);
@@ -177,31 +170,45 @@ const Dashboard = () => {
                         </button>
                     </div>
                     <div className="flex-1 flex flex-col justify-center space-y-6">
-                        {pipeline.map((item, idx) => {
-                            const colorsMap = {
-                                'cutting': 'bg-indigo-400',
-                                'sablon': 'bg-sky-400',
-                                'sewing': 'bg-emerald-400',
-                                'finishing': 'bg-amber-400',
-                                'packing': 'bg-rose-400',
-                            };
-                            const labelLower = item.label ? item.label.toLowerCase() : '';
-                            const colorClass = colorsMap[labelLower] || 'bg-blue-400';
-                            return (
-                                <div key={idx} className="group">
-                                    <div className="flex justify-between text-sm mb-2">
-                                        <span className="font-medium text-slate-600">{item.label}</span>
-                                        <span className="font-bold text-slate-800">{item.val}%</span>
+                        {pipeline.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center py-12 text-slate-400 gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="opacity-40 text-slate-300">
+                                    <path d="M2 17V3a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v14"/>
+                                    <path d="M2 17a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2"/>
+                                    <path d="M2 17v4a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-4"/>
+                                    <path d="M16 6h.01"/>
+                                    <path d="M12 6h.01"/>
+                                    <path d="M8 6h.01"/>
+                                </svg>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">No active production data</span>
+                            </div>
+                        ) : (
+                            pipeline.map((item, idx) => {
+                                const colorsMap = {
+                                    'cutting': 'bg-indigo-400',
+                                    'sablon': 'bg-sky-400',
+                                    'sewing': 'bg-emerald-400',
+                                    'finishing': 'bg-amber-400',
+                                    'packing': 'bg-rose-400',
+                                };
+                                const labelLower = item.label ? item.label.toLowerCase() : '';
+                                const colorClass = colorsMap[labelLower] || 'bg-blue-400';
+                                return (
+                                    <div key={idx} className="group">
+                                        <div className="flex justify-between text-sm mb-2">
+                                            <span className="font-medium text-slate-600">{item.label}</span>
+                                            <span className="font-bold text-slate-800">{item.val}%</span>
+                                        </div>
+                                        <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                                            <div 
+                                                className={`${colorClass} h-2.5 rounded-full transition-all duration-500 group-hover:opacity-80`}
+                                                style={{ width: `${item.val}%` }}
+                                            ></div>
+                                        </div>
                                     </div>
-                                    <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                                        <div 
-                                            className={`${colorClass} h-2.5 rounded-full transition-all duration-500 group-hover:opacity-80`}
-                                            style={{ width: `${item.val}%` }}
-                                        ></div>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                                );
+                            })
+                        )}
                     </div>
                 </div>
 

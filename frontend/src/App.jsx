@@ -1,27 +1,38 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
-import Login from './pages/auth/Login';
-import AdminLayout from './components/layout/AdminLayout';
-import Dashboard from './pages/admin/Dashboard';
-
-import CustomerList from './pages/admin/customers/CustomerList';
-import ProductList from './pages/admin/products/ProductList';
-import ProductBuilder from './pages/admin/products/ProductBuilder';
-import OrderList from './pages/admin/orders/OrderList';
-import OrderWizard from './pages/admin/orders/OrderWizard';
-import WorkOrderPrint from './pages/admin/orders/WorkOrderPrint';
-import ProductionBoard from './pages/admin/production/ProductionBoard';
-import EmployeePerformanceReport from './pages/admin/reports/EmployeePerformanceReport';
-import EmployeeList from './pages/admin/employees/EmployeeList';
-import SubProcessList from './pages/admin/settings/SubProcessList';
-import StationDashboard from './pages/station/StationDashboard';
-import StationLogin from './pages/station/StationLogin';
-import CustomerOrderTracking from './pages/customer/CustomerOrderTracking';
-import LandingPage from './pages/LandingPage';
 import authService from './services/authService';
 import stationService from './services/stationService';
 
-const PrivateRoute = () => {
-    return authService.isAuthenticated() ? <Outlet /> : <Navigate to="/login" replace />;
+// Lazy loaded page components (F1)
+const Login = lazy(() => import('./pages/auth/Login'));
+const AdminLayout = lazy(() => import('./components/layout/AdminLayout'));
+const Dashboard = lazy(() => import('./pages/admin/Dashboard'));
+const CustomerList = lazy(() => import('./pages/admin/customers/CustomerList'));
+const ProductList = lazy(() => import('./pages/admin/products/ProductList'));
+const ProductBuilder = lazy(() => import('./pages/admin/products/ProductBuilder'));
+const OrderList = lazy(() => import('./pages/admin/orders/OrderList'));
+const OrderWizard = lazy(() => import('./pages/admin/orders/OrderWizard'));
+const WorkOrderPrint = lazy(() => import('./pages/admin/orders/WorkOrderPrint'));
+const ProductionBoard = lazy(() => import('./pages/admin/production/ProductionBoard'));
+const EmployeePerformanceReport = lazy(() => import('./pages/admin/reports/EmployeePerformanceReport'));
+const EmployeeList = lazy(() => import('./pages/admin/employees/EmployeeList'));
+const SubProcessList = lazy(() => import('./pages/admin/settings/SubProcessList'));
+const StationDashboard = lazy(() => import('./pages/station/StationDashboard'));
+const StationLogin = lazy(() => import('./pages/station/StationLogin'));
+const CustomerOrderTracking = lazy(() => import('./pages/customer/CustomerOrderTracking'));
+const LandingPage = lazy(() => import('./pages/LandingPage'));
+
+const PrivateRoute = ({ allowedRoles = ['admin'] }) => {
+    const user = authService.getStoredUser();
+    if (!authService.isAuthenticated()) {
+        return <Navigate to="/login" replace />;
+    }
+    
+    if (allowedRoles && user && !allowedRoles.includes(user.role)) {
+        return <Navigate to="/" replace />;
+    }
+    
+    return <Outlet />;
 };
 
 const StationPrivateRoute = () => {
@@ -34,47 +45,54 @@ const NotFound = () => <div className="p-8 text-center text-red-500">404 - Page 
 function App() {
     return (
         <div className="min-h-screen bg-background font-sans text-primary">
-            <Routes>
-                {/* Public Routes */}
-                <Route path="/login" element={<Login />} />
-                
-                {/* Customer Routes */}
-                <Route path="/tracking" element={<CustomerOrderTracking />} />
-                
-                {/* Station Routes (Kiosk Mode) */}
-                <Route path="/station/login" element={<StationLogin />} />
-                <Route element={<StationPrivateRoute />}>
-                    <Route path="/station" element={<StationDashboard />} />
-                </Route>
-
-                {/* Standalone Print Pages (No Layout) - Protected */}
-                <Route element={<PrivateRoute />}>
-                    <Route path="/print/work-order/:id" element={<WorkOrderPrint />} />
-                </Route>
-
-                {/* Admin Routes (Protected) */}
-                <Route element={<PrivateRoute />}>
-                    <Route path="/admin" element={<AdminLayout />}>
-                        <Route index element={<Navigate to="dashboard" replace />} />
-                        <Route path="dashboard" element={<Dashboard />} />
-                        <Route path="customers" element={<CustomerList />} />
-                        <Route path="employees" element={<EmployeeList />} />
-                        <Route path="products" element={<ProductList />} />
-                        <Route path="products/new" element={<ProductBuilder />} />
-                        <Route path="products/:id" element={<ProductBuilder />} />
-                        <Route path="orders" element={<OrderList />} />
-                        <Route path="orders/new" element={<OrderWizard />} />
-                        <Route path="orders/:id" element={<OrderWizard />} />
-                        <Route path="production" element={<ProductionBoard />} />
-                        <Route path="reports" element={<EmployeePerformanceReport />} />
-                        <Route path="settings/sub-processes" element={<SubProcessList />} />
+            <Suspense fallback={
+                <div className="flex flex-col items-center justify-center min-h-screen gap-4 bg-[#f8fafc]">
+                    <div className="w-12 h-12 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin" />
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Loading NKids System...</p>
+                </div>
+            }>
+                <Routes>
+                    {/* Public Routes */}
+                    <Route path="/login" element={<Login />} />
+                    
+                    {/* Customer Routes */}
+                    <Route path="/tracking" element={<CustomerOrderTracking />} />
+                    
+                    {/* Station Routes (Kiosk Mode) */}
+                    <Route path="/station/login" element={<StationLogin />} />
+                    <Route element={<StationPrivateRoute />}>
+                        <Route path="/station" element={<StationDashboard />} />
                     </Route>
-                </Route>
 
-                {/* Redirects / Landing */}
-                <Route path="/" element={<LandingPage />} />
-                <Route path="*" element={<NotFound />} />
-            </Routes>
+                    {/* Standalone Print Pages (No Layout) - Protected */}
+                    <Route element={<PrivateRoute />}>
+                        <Route path="/print/work-order/:id" element={<WorkOrderPrint />} />
+                    </Route>
+
+                    {/* Admin Routes (Protected) */}
+                    <Route element={<PrivateRoute />}>
+                        <Route path="/admin" element={<AdminLayout />}>
+                            <Route index element={<Navigate to="dashboard" replace />} />
+                            <Route path="dashboard" element={<Dashboard />} />
+                            <Route path="customers" element={<CustomerList />} />
+                            <Route path="employees" element={<EmployeeList />} />
+                            <Route path="products" element={<ProductList />} />
+                            <Route path="products/new" element={<ProductBuilder />} />
+                            <Route path="products/:id" element={<ProductBuilder />} />
+                            <Route path="orders" element={<OrderList />} />
+                            <Route path="orders/new" element={<OrderWizard />} />
+                            <Route path="orders/:id" element={<OrderWizard />} />
+                            <Route path="production" element={<ProductionBoard />} />
+                            <Route path="reports" element={<EmployeePerformanceReport />} />
+                            <Route path="settings/sub-processes" element={<SubProcessList />} />
+                        </Route>
+                    </Route>
+
+                    {/* Redirects / Landing */}
+                    <Route path="/" element={<LandingPage />} />
+                    <Route path="*" element={<NotFound />} />
+                </Routes>
+            </Suspense>
         </div>
     );
 }

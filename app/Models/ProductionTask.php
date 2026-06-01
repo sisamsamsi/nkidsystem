@@ -23,7 +23,6 @@ class ProductionTask extends Model
     protected $casts = [
         'order_item_id' => 'integer',
         'process_template_id' => 'integer',
-        'sub_process_id' => 'integer',
         'progress_percent' => 'integer',
         'completed_quantity' => 'integer',
         'start_date' => 'date',

@@ -201,6 +201,20 @@ class ProductController extends Controller
      */
     public function destroy(Product $product)
     {
+        $variantIds = $product->variants()->pluck('id');
+        $hasActiveOrders = \App\Models\OrderItem::whereIn('product_variant_id', $variantIds)
+            ->whereHas('order', function ($query) {
+                $query->whereIn('status', ['pending', 'processing']);
+            })
+            ->exists();
+
+        if ($hasActiveOrders) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete product because it has variants associated with active orders.',
+            ], 422);
+        }
+
         \DB::transaction(function () use ($product) {
             foreach ($product->variants as $variant) {
                 $variant->processes()->delete();
@@ -215,12 +229,13 @@ class ProductController extends Controller
         ]);
     }
 
-    /**
-     * Generate a unique Style Code
-     */
     public function generateStyleCode(Request $request)
     {
-        $productName = $request->input('name', '');
+        $validated = $request->validate([
+            'name' => 'required|string|min:1|max:255',
+        ]);
+
+        $productName = $validated['name'];
         
         // Extract 3 consonants from product name
         $consonants = preg_replace('/[aeiou\s\W\d]/i', '', $productName);

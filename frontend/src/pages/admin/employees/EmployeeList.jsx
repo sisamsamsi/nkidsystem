@@ -17,6 +17,7 @@ const EmployeeList = () => {
     const [selectedEmployee, setSelectedEmployee] = useState(null);
     const [pagination, setPagination] = useState({ current_page: 1, last_page: 1, total: 0 });
     const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
         const handler = setTimeout(() => {
@@ -71,7 +72,8 @@ const EmployeeList = () => {
     };
 
     const handleConfirmDelete = async () => {
-        if (!deleteConfirmId) return;
+        if (!deleteConfirmId || isDeleting) return;
+        setIsDeleting(true);
         try {
             await api.delete(`/users/${deleteConfirmId}`);
             fetchEmployees(pagination.current_page);
@@ -79,6 +81,8 @@ const EmployeeList = () => {
         } catch (err) {
             setError(err.response?.data?.message || "Failed to delete user.");
             setDeleteConfirmId(null);
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -305,16 +309,18 @@ const EmployeeList = () => {
                         
                         <div className="flex gap-3 justify-center">
                             <button 
-                                onClick={() => setDeleteConfirmId(null)}
-                                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-bold rounded-xl transition-all"
+                                onClick={() => !isDeleting && setDeleteConfirmId(null)}
+                                disabled={isDeleting}
+                                className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-sm font-bold rounded-xl transition-all disabled:opacity-50"
                             >
                                 Cancel
                             </button>
                             <button 
                                 onClick={handleConfirmDelete}
-                                className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-rose-200"
+                                disabled={isDeleting}
+                                className="px-5 py-2.5 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-rose-200 disabled:opacity-50 flex items-center gap-1.5"
                             >
-                                Delete
+                                {isDeleting ? 'Deleting...' : 'Delete'}
                             </button>
                         </div>
                     </div>

@@ -9,6 +9,14 @@ use Illuminate\Http\JsonResponse;
 
 class SubProcessController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            \Illuminate\Support\Facades\Gate::authorize('admin-only');
+            return $next($request);
+        });
+    }
+
     /**
      * Display a listing of sub-processes.
      */
@@ -94,6 +102,16 @@ class SubProcessController extends Controller
      */
     public function destroy(SubProcess $subProcess): JsonResponse
     {
+        $isUsedInVariants = \DB::table('variant_sub_processes')->where('sub_process_id', $subProcess->id)->exists();
+        $isUsedInTasks = \App\Models\ProductionTask::where('sub_process_id', $subProcess->id)->exists();
+
+        if ($isUsedInVariants || $isUsedInTasks) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus sub-proses karena sedang digunakan oleh varian produk atau tugas produksi aktif.',
+            ], 422);
+        }
+
         $subProcess->delete();
 
         return response()->json([

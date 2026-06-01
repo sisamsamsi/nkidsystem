@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import api from '../../lib/axios';
+import ImageWithFallback from '../../components/common/ImageWithFallback';
 
 const CustomerOrderTracking = () => {
     const [searchParams] = useSearchParams();
@@ -429,26 +430,12 @@ const CustomerOrderTracking = () => {
                                                                 <div className="flex items-center gap-3">
                                                                     {/* Variant Image */}
                                                                     <div className="w-12 h-12 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0 border border-slate-200">
-                                                                        {item.image_url ? (
-                                                                            <img 
-                                                                                src={item.image_url} 
-                                                                                alt={item.variant}
-                                                                                className="w-full h-full object-cover"
-                                                                                onError={(e) => {
-                                                                                    e.target.style.display = 'none';
-                                                                                    if (e.target.parentNode && !e.target.parentNode.querySelector('.img-fallback')) {
-                                                                                        const fallback = document.createElement('div');
-                                                                                        fallback.className = 'img-fallback w-full h-full flex items-center justify-center text-slate-300 bg-slate-50';
-                                                                                        fallback.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="2" x2="22" y1="2" y2="22"/><path d="M10.41 10.41a2 2 0 1 1-2.83-2.83"/><line x1="10" x2="21" y1="14" y2="3"/><path d="M3.59 3.59A2 2 0 0 0 3 5v12a2 2 0 0 0 2 2h12a2 2 0 0 0 1.41-.59"/><path d="m11.5 11.5 2 2 3.5-3.5"/></svg>`;
-                                                                                        e.target.parentNode.appendChild(fallback);
-                                                                                    }
-                                                                                }}
-                                                                            />
-                                                                        ) : (
-                                                                            <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                                                                <ImageOff size={20} />
-                                                                            </div>
-                                                                        )}
+                                                                        <ImageWithFallback 
+                                                                            src={item.image_url} 
+                                                                            alt={item.variant}
+                                                                            className="w-full h-full object-cover"
+                                                                            fallback={<ImageOff size={20} className="text-slate-300" />}
+                                                                        />
                                                                     </div>
                                                                     <div>
                                                                         <p className="font-semibold text-slate-900">{item.product}</p>

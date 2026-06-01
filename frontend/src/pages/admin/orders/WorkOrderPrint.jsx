@@ -121,7 +121,7 @@ const WorkOrderPrint = () => {
                                 <h1 className="text-2xl font-black text-slate-800 uppercase tracking-tight">
                                     Production Work Order
                                 </h1>
-                                <p className="text-sm text-slate-500 mt-1">Production Work Order</p>
+                                <p className="text-sm text-slate-500 mt-1">NKids Production System</p>
                             </div>
                             <div className="text-right">
                                 <div className="text-xl font-black text-primary">{order.po_number}</div>

@@ -10,6 +10,14 @@ const AdminHeader = () => {
     const userName = user?.name || 'Jane Admin';
     const userRole = user?.role ? (user.role.charAt(0).toUpperCase() + user.role.slice(1)) : 'Production Mgr';
 
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const handleSearchSubmit = (e) => {
+        if (e.key === 'Enter') {
+            navigate(`/admin/orders?search=${encodeURIComponent(searchQuery)}`);
+        }
+    };
+
     const handleLogout = async () => {
         authService.logout();
         navigate('/login');
@@ -38,6 +46,9 @@ const AdminHeader = () => {
                 <div className="hidden md:flex items-center bg-[#f0f2f5] rounded-lg px-3 py-2 w-64">
                     <Search className="text-[#60708a]" size={20} />
                     <input
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onKeyDown={handleSearchSubmit}
                         className="bg-transparent border-none text-sm text-[#111418] placeholder-[#60708a] focus:ring-0 w-full ml-2 p-0 outline-none"
                         placeholder="Search orders..."
                         type="text"

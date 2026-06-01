@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { stationService } from "../../services/stationService";
-import api from "../../lib/axios";
 
 const StationLogin = () => {
     const navigate = useNavigate();
@@ -45,7 +44,7 @@ const StationLogin = () => {
     useEffect(() => {
         const fetchStations = async () => {
             try {
-                const response = await api.get("/station");
+                const response = await stationService.getStations();
                 const stationData = response.data.data || response.data;
                 setStations(stationData.map(s => ({
                     ...s,

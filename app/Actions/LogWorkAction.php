@@ -30,6 +30,10 @@ class LogWorkAction
             $task = ProductionTask::lockForUpdate()->findOrFail($taskId);
             $orderItem = $task->orderItem;
 
+            if (!$orderItem) {
+                throw new \Exception("Task #{$taskId} has no associated order item.");
+            }
+
             // Calculate remaining quantity
             $totalRequired = $orderItem->quantity;
             $alreadyCompleted = $task->completed_quantity;

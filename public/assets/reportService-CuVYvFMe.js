@@ -1,0 +1,1 @@
+import{b as r}from"./index-DHTM_JLI.js";const a={getEmployeePerformance:async(e={})=>(await r.get("/reports/employee-performance",{params:e})).data,getProductionSummary:async(e={})=>(await r.get("/reports/production-summary",{params:e})).data,getDashboardStats:async()=>(await r.get("/reports/dashboard")).data};export{a as r};

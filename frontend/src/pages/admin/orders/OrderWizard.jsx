@@ -128,6 +128,7 @@ const OrderWizard = () => {
 
     // Auto-PO Logic
     useEffect(() => {
+        let active = true;
         if (!isEditMode && orderDetails.customer_id && orderDetails.date) {
             const fetchPoNumber = async () => {
                 setGeneratingPO(true);
@@ -136,17 +137,22 @@ const OrderWizard = () => {
                         customer_id: orderDetails.customer_id,
                         date: orderDetails.date
                     });
-                    if (response.data.success) {
+                    if (active && response.data.success) {
                         setOrderDetails(prev => ({ ...prev, po_number: response.data.po_number }));
                     }
                 } catch (error) {
                     console.error('Failed to generate PO', error);
                 } finally {
-                    setGeneratingPO(false);
+                    if (active) {
+                        setGeneratingPO(false);
+                    }
                 }
             };
             fetchPoNumber();
         }
+        return () => {
+            active = false;
+        };
     }, [orderDetails.customer_id, orderDetails.date, isEditMode]);
 
     // Quantity Handlers
@@ -201,7 +207,9 @@ const OrderWizard = () => {
             // Transform quantities to items array
             const items = [];
             Object.entries(quantities).forEach(([key, qty]) => {
-                const [variantId, size] = key.split('-');
+                const firstDashIdx = key.indexOf('-');
+                const variantId = key.substring(0, firstDashIdx);
+                const size = key.substring(firstDashIdx + 1);
                 
                 // Find the variant to get color scheme
                 let colorScheme = '';
@@ -550,7 +558,9 @@ const OrderWizard = () => {
                                 <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">Items Detail</h3>
                                 <div className="space-y-3">
                                     {Object.entries(quantities).map(([key, qty]) => {
-                                        const [varId, size] = key.split('-');
+                                        const firstDashIdx = key.indexOf('-');
+                                        const varId = key.substring(0, firstDashIdx);
+                                        const size = key.substring(firstDashIdx + 1);
                                         
                                         let productName = '', variantName = '', colorScheme = '';
                                         for (const p of customerProducts) {

@@ -79,7 +79,7 @@ const Login = () => {
           <div 
             className="absolute inset-0 w-full h-full bg-cover bg-center opacity-90"
             style={{ 
-              backgroundImage: "url('https://lh3.googleusercontent.com/aida-public/AB6AXuCiiRvzJ2XQXH0J-gAKRZT2MDxEP0ha6d5lwLgFDfbpv_lqXsF_QKbdoF8uXtiZQofSRpzibZHPUxq-1QVfJRwtWIBvJoLaJfbmt3VL_SSJSZ_9DcmQbGfQGHunFm08dM7_X8xd5PhjjZymZEAK5p6oKfc2-8bM-sGABmqJx44TzcN-mYixpE-5RKRgrbm61twW7HzBVQn9rHNGc3J8Sa959glvA3G9ZB-J33iLXOcFsRLAlZCcDWygUiLInZrvSOPutEtQKrlXyr0')"
+              backgroundImage: "url('/login_bg.png')"
             }}
           ></div>
           <div className="absolute inset-0 bg-blue-600/10 mix-blend-multiply"></div>

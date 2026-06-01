@@ -9,6 +9,14 @@ use Illuminate\Http\Request;
 
 class ProductionTaskController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            \Illuminate\Support\Facades\Gate::authorize('admin-only');
+            return $next($request);
+        });
+    }
+
     /**
      * Display production tasks (Kanban board data)
      */
@@ -52,6 +60,11 @@ class ProductionTaskController extends Controller
 
         // Sorting
         $sortField = $request->get('sort_field', 'priority');
+        $allowedSortFields = ['priority', 'po_number', 'product_name', 'station', 'progress', 'status', 'start_date', 'end_date', 'created_at', 'updated_at'];
+        if (!in_array($sortField, $allowedSortFields)) {
+            $sortField = 'priority';
+        }
+
         $sortOrder = in_array(strtolower($request->get('sort_order', 'asc')), ['asc', 'desc']) ? strtolower($request->get('sort_order', 'asc')) : 'asc';
 
         if ($request->get('sort') === 'recent' || $sortField === 'updated_at') {
@@ -89,7 +102,14 @@ class ProductionTaskController extends Controller
             $query->orderBy($sortField, $sortOrder);
         }
 
-        $tasks = $query->paginate($request->get('per_page', 50));
+        $perPage = (int) $request->get('per_page', 50);
+        if ($perPage < 1) {
+            $perPage = 50;
+        }
+        if ($perPage > 100) {
+            $perPage = 100;
+        }
+        $tasks = $query->paginate($perPage);
 
         return response()->json([
             'success' => true,
@@ -113,9 +133,6 @@ class ProductionTaskController extends Controller
         ]);
     }
 
-    /**
-     * Update task status
-     */
     public function update(Request $request, ProductionTask $productionTask)
     {
         $validated = $request->validate([
@@ -123,6 +140,16 @@ class ProductionTaskController extends Controller
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
         ]);
+
+        $startDate = $request->has('start_date') ? $validated['start_date'] : $productionTask->start_date;
+        $endDate = $request->has('end_date') ? $validated['end_date'] : $productionTask->end_date;
+
+        if ($startDate && $endDate && strtotime($endDate) < strtotime($startDate)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The end date must be a date after or equal to start date.',
+            ], 422);
+        }
 
         $productionTask->update($validated);
 

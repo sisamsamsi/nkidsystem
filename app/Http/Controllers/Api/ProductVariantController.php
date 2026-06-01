@@ -8,6 +8,14 @@ use Illuminate\Http\Request;
 
 class ProductVariantController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            \Illuminate\Support\Facades\Gate::authorize('admin-only');
+            return $next($request);
+        });
+    }
+
     /**
      * Display a listing of product variants
      */
@@ -86,6 +94,15 @@ class ProductVariantController extends Controller
      */
     public function destroy(ProductVariant $productVariant)
     {
+        $hasActiveOrders = \App\Models\OrderItem::where('product_variant_id', $productVariant->id)->exists();
+
+        if ($hasActiveOrders) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus varian produk karena sedang digunakan dalam pesanan aktif.',
+            ], 422);
+        }
+
         $productVariant->delete();
 
         return response()->json([

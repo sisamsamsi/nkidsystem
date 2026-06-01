@@ -40,9 +40,9 @@ Route::get('/track/{po_number}', [OrderController::class, 'track'])
 
 Route::prefix('auth')->group(function () {
     Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('api.auth.login');
-    Route::post('/register', [AuthController::class, 'register'])->middleware('throttle:5,1')->name('api.auth.register');
     
     Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/register', [AuthController::class, 'register'])->middleware(['throttle:5,1', 'can:admin-only'])->name('api.auth.register');
         Route::post('/logout', [AuthController::class, 'logout'])->name('api.auth.logout');
         Route::get('/user', [AuthController::class, 'user'])->name('api.auth.user');
     });
@@ -89,7 +89,7 @@ Route::middleware([\App\Http\Middleware\LogApiResponses::class, 'auth:sanctum'])
     // -------------------------------------------
     
     Route::post('orders/generate-po-number', [OrderController::class, 'generatePoNumber'])->name('orders.generate-po-number');
-    Route::post('orders/import', [OrderController::class, 'import'])->name('orders.import');
+    // Route::post('orders/import', [OrderController::class, 'import'])->name('orders.import');
     Route::apiResource('orders', OrderController::class);
     Route::post('orders/{order}/recalculate', [OrderController::class, 'recalculate'])->name('orders.recalculate');
     Route::post('orders/{order}/generate-tasks', [OrderController::class, 'regenerateTasks'])->name('orders.generate-tasks');

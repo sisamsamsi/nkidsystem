@@ -61,6 +61,10 @@ const QCLogModal = ({ isOpen, onClose, task, onSuccess }) => {
 
     const cn = (...inputs) => inputs.filter(Boolean).join(' ');
 
+    // Compute the remaining allowed quantity for this task
+    const remainingQty = task ? (task.total - task.completed) : 0;
+    const isOverQuantity = (goodQty + rejectQty) > remainingQty && remainingQty > 0;
+
     const handleSubmit = async () => {
         if (goodQty === 0 && rejectQty === 0) return;
 
@@ -213,7 +217,7 @@ const QCLogModal = ({ isOpen, onClose, task, onSuccess }) => {
                                             <option value="Lainnya">Other (Specify in Notes)</option>
                                         </select>
                                         <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" className="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chevron-down"><path d="m6 9 6 6 6-6"/></svg>
                                         </div>
                                     </div>
                                 </div>
@@ -286,11 +290,11 @@ const QCLogModal = ({ isOpen, onClose, task, onSuccess }) => {
                         </button>
                         <button
                             onClick={handleSubmit}
-                            disabled={(goodQty === 0 && rejectQty === 0) || loading}
+                            disabled={(goodQty === 0 && rejectQty === 0) || isOverQuantity || loading}
                             className={cn(
                                 "px-8 h-11 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg transition-all active:scale-95 flex items-center gap-2",
-                                (goodQty === 0 && rejectQty === 0) || loading
-                                    ? "bg-slate-100 text-slate-400 shadow-none"
+                                (goodQty === 0 && rejectQty === 0) || isOverQuantity || loading
+                                    ? "bg-slate-100 text-slate-400 shadow-none cursor-not-allowed"
                                     : "bg-slate-900 dark:bg-primary text-white shadow-slate-200 dark:shadow-primary/30 hover:translate-y-[-1px]"
                             )}
                         >

@@ -13,17 +13,20 @@ import {
     Filter,
     Image,
     Printer,
+    AlertCircle,
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { orderService } from "../../../services/orderService";
 import { getColorBlockInlineStyle } from "../../../lib/colorblock";
 
 const OrderList = () => {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [searchVal, setSearchVal] = useState("");
+    const [error, setError] = useState("");
+    const [searchVal, setSearchVal] = useState(searchParams.get("search") || "");
+    const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
     const [statusFilter, setStatusFilter] = useState("all");
     const [sortField, setSortField] = useState("created_at");
     const [sortOrder, setSortOrder] = useState("desc");
@@ -34,8 +37,24 @@ const OrderList = () => {
     });
 
     useEffect(() => {
+        const queryParam = searchParams.get("search") || "";
+        if (queryParam !== searchVal) {
+            setSearchVal(queryParam);
+            setSearchQuery(queryParam);
+        }
+    }, [searchParams]);
+
+    useEffect(() => {
         const handler = setTimeout(() => {
             setSearchQuery(searchVal);
+            setSearchParams(prev => {
+                if (searchVal) {
+                    prev.set("search", searchVal);
+                } else {
+                    prev.delete("search");
+                }
+                return prev;
+            });
         }, 300);
         return () => clearTimeout(handler);
     }, [searchVal]);
@@ -46,6 +65,7 @@ const OrderList = () => {
 
     const fetchOrders = async (page = 1) => {
         setLoading(true);
+        setError("");
         try {
             const params = {
                 page,
@@ -67,6 +87,8 @@ const OrderList = () => {
             });
         } catch (err) {
             console.error("Failed to fetch orders", err);
+            setError("Failed to load orders. Please try again.");
+            setOrders([]);
         } finally {
             setLoading(false);
         }
@@ -77,7 +99,7 @@ const OrderList = () => {
             return;
         try {
             await orderService.delete(id);
-            fetchOrders();
+            fetchOrders(pagination.current_page);
         } catch (err) {
             alert("Failed to delete order");
         }
@@ -196,12 +218,29 @@ const OrderList = () => {
                     </div>
 
                     <div className="flex items-center gap-2 w-full md:w-auto">
-                        <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-xl text-sm font-medium text-slate-600 cursor-pointer hover:bg-slate-100 transition-colors">
-                            <Filter size={16} />
-                            <span>Filter</span>
+                        <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-xl text-sm font-medium text-slate-600 transition-colors border border-transparent hover:border-slate-100">
+                            <Filter size={16} className="text-slate-400" />
+                            <select
+                                value={statusFilter}
+                                onChange={(e) => setStatusFilter(e.target.value)}
+                                className="bg-transparent border-none text-slate-600 focus:ring-0 text-sm font-medium cursor-pointer p-0 outline-none pr-8"
+                            >
+                                <option value="all">All Statuses</option>
+                                <option value="pending">Pending</option>
+                                <option value="processing">Processing</option>
+                                <option value="completed">Completed</option>
+                                <option value="cancelled">Cancelled</option>
+                            </select>
                         </div>
                     </div>
                 </div>
+
+                {error && (
+                    <div className="m-5 p-4 bg-red-50 border border-red-100 rounded-xl flex items-center gap-3 text-red-700 text-xs font-semibold">
+                        <AlertCircle size={18} />
+                        <span>{error}</span>
+                    </div>
+                )}
 
                 {/* Table */}
                 <div className="overflow-x-auto">

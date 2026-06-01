@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <!-- Background -->
+  <rect width="256" height="256" fill="#ffffff" rx="32"/>
+  
+  <!-- NKids Logo with Colorful Letters -->
+  <g transform="translate(32, 60)">
+    <!-- N - Red -->
+    <text x="0" y="120" font-size="140" font-weight="900" font-family="Inter, sans-serif" fill="#ef4444">N</text>
+    
+    <!-- K - Blue -->
+    <text x="55" y="120" font-size="140" font-weight="900" font-family="Inter, sans-serif" fill="#3b82f6">K</text>
+    
+    <!-- i - Green -->
+    <text x="105" y="120" font-size="140" font-weight="900" font-family="Inter, sans-serif" fill="#22c55e">i</text>
+    
+    <!-- d - Yellow -->
+    <text x="135" y="120" font-size="140" font-weight="900" font-family="Inter, sans-serif" fill="#eab308">d</text>
+    
+    <!-- s - Indigo -->
+    <text x="180" y="120" font-size="140" font-weight="900" font-family="Inter, sans-serif" fill="#4f46e5">s</text>
+  </g>
+</svg>

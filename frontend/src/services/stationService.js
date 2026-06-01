@@ -1,6 +1,12 @@
 import api from '../lib/axios';
 
 export const stationService = {
+  // Get all stations
+  getStations: async () => {
+    const response = await api.get('/station');
+    return response.data;
+  },
+
   // Station PIN auth
   authenticate: async (stationId, pinCode) => {
     const response = await api.post('/station/auth', {

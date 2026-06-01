@@ -18,10 +18,12 @@ class RecalculateProgressAction
      */
     public function execute(ProductionTask $task): void
     {
-        $task = $task->fresh(['orderItem']);
+        // Fix: fresh() does not accept relations — use load() separately
+        $task = $task->fresh();
         if (!$task) {
             return;
         }
+        $task->load('orderItem');
 
         $orderItem = $task->orderItem;
         
@@ -32,8 +34,12 @@ class RecalculateProgressAction
         // Recalculate order item progress (weighted)
         $this->recalculateOrderItemProgress($orderItem);
 
-        // Recalculate order overall progress
-        $this->recalculateOrderProgress($orderItem->order()->first());
+        // Recalculate order overall progress — null guard required
+        $order = $orderItem->order()->first();
+        if (!$order) {
+            return;
+        }
+        $this->recalculateOrderProgress($order);
     }
 
     /**
@@ -125,8 +131,10 @@ class RecalculateProgressAction
             $this->recalculateOrderItemProgress($item);
         }
 
-        $this->recalculateOrderProgress($order->fresh());
+        // Avoid double fresh() — fetch once and reuse
+        $freshOrder = $order->fresh();
+        $this->recalculateOrderProgress($freshOrder);
 
-        return $order->fresh();
+        return $freshOrder;
     }
 }

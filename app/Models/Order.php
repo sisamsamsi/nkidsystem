@@ -25,7 +25,6 @@ class Order extends Model
         'date' => 'date',
         'deadline_date' => 'date',
         'customer_id' => 'integer',
-        'branch_id' => 'integer',
         'overall_progress' => 'integer',
     ];
 

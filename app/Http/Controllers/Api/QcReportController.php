@@ -9,6 +9,14 @@ use Illuminate\Http\Request;
 
 class QcReportController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            \Illuminate\Support\Facades\Gate::authorize('qc-or-admin');
+            return $next($request);
+        });
+    }
+
     /**
      * Store a new QC report
      */

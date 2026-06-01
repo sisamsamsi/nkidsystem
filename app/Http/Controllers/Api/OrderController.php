@@ -49,6 +49,11 @@ class OrderController extends Controller
 
         // Sorting
         $sortField = $request->get('sort_field', 'created_at');
+        $allowedSortFields = ['created_at', 'updated_at', 'po_number', 'customer', 'date', 'deadline', 'progress', 'status', 'priority'];
+        if (!in_array($sortField, $allowedSortFields)) {
+            $sortField = 'created_at';
+        }
+
         $sortOrder = in_array(strtolower($request->get('sort_order', 'desc')), ['asc', 'desc']) ? strtolower($request->get('sort_order', 'desc')) : 'desc';
 
         if ($sortField === 'po_number') {
@@ -109,6 +114,7 @@ class OrderController extends Controller
             $order = Order::create([
                 'po_number' => $validated['po_number'],
                 'date' => $validated['date'],
+                'deadline_date' => $validated['deadline_date'] ?? null,
                 'customer_id' => $validated['customer_id'],
                 'branch_id' => $validated['branch_id'] ?? null,
                 'priority' => $validated['priority'],
@@ -128,43 +134,7 @@ class OrderController extends Controller
                 ]);
 
                 // Auto-create production tasks based on variant processes
-                $variant = ProductVariant::with(['processes', 'subProcesses'])->find($itemData['product_variant_id']);
-                
-                foreach ($variant->processes as $variantProcess) {
-                    $processTemplate = ProcessTemplate::find($variantProcess->process_template_id);
-                    $processName = strtoupper($processTemplate->name ?? '');
-                    
-                    // Check if this process has sub-processes (SEWING, FINISHING)
-                    $subProcesses = $variant->subProcesses()
-                        ->whereHas('parentProcessTemplate', function($q) use ($variantProcess) {
-                            $q->where('id', $variantProcess->process_template_id);
-                        })
-                        ->orderBy('variant_sub_processes.sequence_order')
-                        ->get();
-                    
-                    if ($subProcesses->count() > 0) {
-                        // Create a task for each sub-process
-                        foreach ($subProcesses as $subProcess) {
-                            ProductionTask::create([
-                                'order_item_id' => $orderItem->id,
-                                'process_template_id' => $variantProcess->process_template_id,
-                                'sub_process_id' => $subProcess->id,
-                                'status' => 'pending',
-                                'progress_percent' => 0,
-                                'completed_quantity' => 0,
-                            ]);
-                        }
-                    } else {
-                        // No sub-processes, create single task for the process
-                        ProductionTask::create([
-                            'order_item_id' => $orderItem->id,
-                            'process_template_id' => $variantProcess->process_template_id,
-                            'status' => 'pending',
-                            'progress_percent' => 0,
-                            'completed_quantity' => 0,
-                        ]);
-                    }
-                }
+                $this->createProductionTasksForOrderItem($orderItem, $itemData['product_variant_id']);
             }
 
             return $order;
@@ -246,16 +216,7 @@ class OrderController extends Controller
                         ]);
 
                         // Auto-create production tasks for new item
-                        $variant = ProductVariant::with('processes')->find($itemData['product_variant_id']);
-                        foreach ($variant->processes as $variantProcess) {
-                            ProductionTask::create([
-                                'order_item_id' => $orderItem->id,
-                                'process_template_id' => $variantProcess->process_template_id,
-                                'status' => 'pending',
-                                'progress_percent' => 0,
-                                'completed_quantity' => 0,
-                            ]);
-                        }
+                        $this->createProductionTasksForOrderItem($orderItem, $itemData['product_variant_id']);
 
                         $updatedItemIds[] = $orderItem->id;
                     }
@@ -471,17 +432,21 @@ class OrderController extends Controller
         ], 501);
     }
 
-    /**
-     * Force recalculate order progress
-     */
-    public function recalculate(Order $order)
+    public function recalculate(Order $order, \App\Actions\RecalculateProgressAction $recalculateAction)
     {
-        // TODO: Implement via ProductionProgressService
-        return response()->json([
-            'success' => true,
-            'message' => 'Recalculation triggered',
-            'data' => $order->fresh(),
-        ]);
+        try {
+            $updatedOrder = $recalculateAction->recalculateOrder($order);
+            return response()->json([
+                'success' => true,
+                'message' => 'Order progress recalculated successfully.',
+                'data' => $updatedOrder,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to recalculate order progress: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -492,24 +457,53 @@ class OrderController extends Controller
         \DB::transaction(function () use ($order) {
             foreach ($order->items as $item) {
                 // Get defined processes for this variant
-                $variant = ProductVariant::with('processes')->find($item->product_variant_id);
+                $variant = ProductVariant::with(['processes', 'subProcesses'])->find($item->product_variant_id);
                 
                 if (!$variant) continue;
 
                 foreach ($variant->processes as $variantProcess) {
-                    // Check if task already exists
-                    $exists = ProductionTask::where('order_item_id', $item->id)
-                        ->where('process_template_id', $variantProcess->process_template_id)
-                        ->exists();
+                    $subProcesses = $variant->subProcesses()
+                        ->whereHas('parentProcessTemplate', function($q) use ($variantProcess) {
+                            $q->where('id', $variantProcess->process_template_id);
+                        })
+                        ->orderBy('variant_sub_processes.sequence_order')
+                        ->get();
+                    
+                    if ($subProcesses->count() > 0) {
+                        foreach ($subProcesses as $subProcess) {
+                            // Check if task already exists for this sub-process
+                            $exists = ProductionTask::where('order_item_id', $item->id)
+                                ->where('process_template_id', $variantProcess->process_template_id)
+                                ->where('sub_process_id', $subProcess->id)
+                                ->exists();
 
-                    if (!$exists) {
-                        ProductionTask::create([
-                            'order_item_id' => $item->id,
-                            'process_template_id' => $variantProcess->process_template_id,
-                            'status' => 'pending',
-                            'progress_percent' => 0,
-                            'completed_quantity' => 0,
-                        ]);
+                            if (!$exists) {
+                                ProductionTask::create([
+                                    'order_item_id' => $item->id,
+                                    'process_template_id' => $variantProcess->process_template_id,
+                                    'sub_process_id' => $subProcess->id,
+                                    'status' => 'pending',
+                                    'progress_percent' => 0,
+                                    'completed_quantity' => 0,
+                                ]);
+                            }
+                        }
+                    } else {
+                        // Check if task already exists for this process template
+                        $exists = ProductionTask::where('order_item_id', $item->id)
+                            ->where('process_template_id', $variantProcess->process_template_id)
+                            ->whereNull('sub_process_id')
+                            ->exists();
+
+                        if (!$exists) {
+                            ProductionTask::create([
+                                'order_item_id' => $item->id,
+                                'process_template_id' => $variantProcess->process_template_id,
+                                'status' => 'pending',
+                                'progress_percent' => 0,
+                                'completed_quantity' => 0,
+                            ]);
+                        }
                     }
                 }
             }
@@ -572,5 +566,44 @@ class OrderController extends Controller
             'success' => true,
             'po_number' => $poNumber
         ]);
+    }
+
+    /**
+     * Helper to auto-create production tasks (processes and sub-processes) for an order item
+     */
+    private function createProductionTasksForOrderItem(\App\Models\OrderItem $orderItem, int $productVariantId): void
+    {
+        $variant = ProductVariant::with(['processes', 'subProcesses'])->find($productVariantId);
+        if (!$variant) return;
+
+        foreach ($variant->processes as $variantProcess) {
+            $subProcesses = $variant->subProcesses()
+                ->whereHas('parentProcessTemplate', function($q) use ($variantProcess) {
+                    $q->where('id', $variantProcess->process_template_id);
+                })
+                ->orderBy('variant_sub_processes.sequence_order')
+                ->get();
+            
+            if ($subProcesses->count() > 0) {
+                foreach ($subProcesses as $subProcess) {
+                    ProductionTask::create([
+                        'order_item_id' => $orderItem->id,
+                        'process_template_id' => $variantProcess->process_template_id,
+                        'sub_process_id' => $subProcess->id,
+                        'status' => 'pending',
+                        'progress_percent' => 0,
+                        'completed_quantity' => 0,
+                    ]);
+                }
+            } else {
+                ProductionTask::create([
+                    'order_item_id' => $orderItem->id,
+                    'process_template_id' => $variantProcess->process_template_id,
+                    'status' => 'pending',
+                    'progress_percent' => 0,
+                    'completed_quantity' => 0,
+                ]);
+            }
+        }
     }
 }
